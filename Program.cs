@@ -8,6 +8,7 @@ builder.WebHost.UseUrls("http://localhost:5001");  //forcé lapp a tourné au po
 
 //  Ajout des services avant builder.Build()
 builder.Services.AddControllers(); // tu dit api que tu travail avec des controlleur 
+builder.Services.AddHttpClient();//afin de se co a une autre API(secondaire)
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

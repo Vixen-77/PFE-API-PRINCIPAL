@@ -6,7 +6,5 @@ using System.Text;
 [ApiController]
 [Route ("api/Tokens")]
  public class JWT : ControllerBase{
-
-
-    
+ 
  }
