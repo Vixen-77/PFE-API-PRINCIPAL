@@ -14,8 +14,9 @@ namespace APIAPP.Data
         public DbSet<TestEntity> TestEntities { get; set; }
         public DbSet<Patient> Patients {get; set; }
         public DbSet<ProfSanté> ProfSantés {get; set;}
-
-        public DbSet<GérantEM> GérantEMs {get; set;}
+        public DbSet<RespHop> GérantEMs {get; set;}
+        public DbSet<Proche> Proches {get; set;}
+        public DbSet<Centre> Centres {get ;set;}
     }
 }
 

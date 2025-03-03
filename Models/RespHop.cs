@@ -9,7 +9,7 @@ namespace APIAPP.Models
         public required Guid IdResp { get; set; }
         
         [ForeignKey(nameof(Centre))] 
-        public required Guid IdC { get; set; }
+        public required Guid IdC { get; set; } // la clé etrangère IdC de Centre
 
     }
 }
