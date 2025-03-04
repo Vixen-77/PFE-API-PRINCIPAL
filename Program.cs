@@ -2,10 +2,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using APIAPP.Data; 
+using DotNetEnv; 
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://localhost:5001");  //forcé lapp a tourné au port 5001 toujours 
+// Charger les variables depuis .env
+Env.Load();
+var appUrl = Env.GetString("API_URL");
+var reactAppUrl = Env.GetString("REACT_URL");
 
+if (string.IsNullOrEmpty(appUrl) || string.IsNullOrEmpty(reactAppUrl))
+{
+    throw new Exception("Les variables d'environnement APP_URL et REACT_APP_URL doivent être définies dans .env");
+}
+
+// Utiliser les URLs définies dans .env
+builder.WebHost.UseUrls(appUrl);
 //  Ajout des services avant builder.Build()
 builder.Services.AddControllers(); // tu dit api que tu travail avec des controlleur 
 builder.Services.AddHttpClient();//afin de se co a une autre API(secondaire)
@@ -16,7 +27,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        policy => policy.WithOrigins("http://localhost:3000")  // Port où tourne React
+       policy => policy.WithOrigins(reactAppUrl) // Port où tourne React
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials()); // Pour SignalR

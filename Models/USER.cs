@@ -33,8 +33,5 @@ namespace APIAPP.Models
         public required Device Device { get; set; } = new();
         public required bool  SubscriptionPlan { get; set; }  //false=gratuit true=payant  //avoir si on peut le faire
         public bool IsOnline { get; set; } 
-
-        
     }
-
 }
