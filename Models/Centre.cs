@@ -9,7 +9,7 @@ namespace APIAPP.Models
         public required Guid IdC { get; set; }
 
         [ForeignKey(nameof(RespHop))] 
-        public required Guid IdResp { get; set; }
+        public required Guid UID { get; set; }
 
         public required string NomC { get; set; }
         public required string Adresse { get; set; }

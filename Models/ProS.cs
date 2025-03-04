@@ -11,6 +11,5 @@ namespace APIAPP.Models
       public required Speciality Spe { get; set; }  
 
        //voir si on rajouter des attribut ou ideé intéréssante
-
     }
 }

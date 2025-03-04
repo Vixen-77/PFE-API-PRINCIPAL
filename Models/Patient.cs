@@ -14,5 +14,6 @@ namespace APIAPP.Models
         public required string MedicalRecordPath { get; set; }  //lien du fichier du patient au moment de l'inscription
         public required string MailMed { get; set;} 
         public int? NbSec { get; set;}  //nombre de fois ou il a était secouru (voir si c'est un patient subissant un nombre considérable d'anomalie)
+
     }
 }
