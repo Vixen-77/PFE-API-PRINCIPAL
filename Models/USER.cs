@@ -2,7 +2,8 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 using RestSharp;
-using APIAPP.Enums; 
+using APIAPP.Enums;
+using Microsoft.Identity.Client;
 namespace APIAPP.Models
 {
     public abstract class USER
@@ -28,9 +29,9 @@ namespace APIAPP.Models
         public required string PhoneNumber { get; set; } // Optionnel
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLogin { get; set; }
-        public required AccountStatus AccountStatus { get; set; } 
-        public bool TwoFactorEnabled { get; set; }
-        public required Device Device { get; set; } = new();
+         public required bool AccountStatus  {get; set; }   // false=normale true= user suspendu
+        public bool TwoFactorEnabled { get; set; } 
+        public required Device Device { get; set; } 
         public required bool  SubscriptionPlan { get; set; }  //false=gratuit true=payant  //avoir si on peut le faire
         public bool IsOnline { get; set; } 
     }
