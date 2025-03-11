@@ -4,13 +4,17 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Net.Http;
 using System.Threading.Tasks;
+// TODO: ce code gère l'interconnection avec API secondaire le code se divise en deux partie isSender = true (exporteur)et isSender = false(receveur)
+//FIXME: LE code changera au fure et a mesure si les deux API doivent faire des tache de comunication bien spésifique mais la base de ce code reste la meme 
+//NOTE: le Ce controlleur a le meme nom que le controlleur dans API secondaire la differance est dans URL de distination 
+ //TODO: 5001-->5002 et       (5002-->5001 dans API secondaire)
 
 [ApiController]
-[Route("api/test1")]
-public class TESTconto : ControllerBase
+[Route("api/call1")]
+public class APIcall : ControllerBase
 {
 private readonly HttpClient _httpClient;
-public TESTconto(IHttpClientFactory httpClientFactory)
+public APIcall(IHttpClientFactory httpClientFactory)
 {
     _httpClient = httpClientFactory.CreateClient();
 }

@@ -7,13 +7,9 @@ using System.ComponentModel.DataAnnotations.Schema;
      public class Proche{                                 
 
         [Key]
-        public int IdP { get; set; }
-        public required string Name { get; set; }
-        public required string PhoneNumber { get; set; }
+        public required Guid IdProche { get; set; } = Guid.NewGuid();
+        public string? Name { get; set; }
+        public string? PhoneNumber { get; set; }
 
-        // Clé étrangère pour la relation avec Patient
-        public int PatientId { get; set; }
-        [ForeignKey (nameof(Patient))]
-        public required Guid prochId { get; set;}
      }
  }

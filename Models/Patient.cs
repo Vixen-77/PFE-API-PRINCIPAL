@@ -1,19 +1,52 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using APIAPP.Models;
 using APIAPP.Enums;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using Azure.Identity;
 
 namespace APIAPP.Models
 {
-    public class Patient : USER
+    public class Patient 
     {
-        public required Guid prochId { get; set;}
-        public required Device ConnectedDevice {get; set;}
-        public required UserState State { get; set; }
-        [JsonIgnore]
-        public required string MedicalRecordPath { get; set; }  //lien du fichier du patient au moment de l'inscription
+        
+        
+        public required string MedicalRecordPath { get; set; } //lien du fichier du patient au moment de l'inscription
+         public required string IdentityRecordPath { get; set; } //lien du fichier du carte identité
+        [EmailAddress]
         public required string MailMed { get; set;} 
-        public int? NbSec { get; set;}  //nombre de fois ou il a était secouru (voir si c'est un patient subissant un nombre considérable d'anomalie)
+        public int? NbSec { get; set;} 
+        [ForeignKey(nameof(Proche))]
+        public required Guid IdProche { get; set; } // la clé etrangère Id
 
+        public required UserState State { get; set; } // l'état du patient
+
+        public virtual required Proche Proche { get; set; } // navigation property
+        [Key]
+        public Guid UID { get; set; } 
+    
+        [EmailAddress]
+        public required string Email { get; set; }
+        
+        public required string PasswordHash { get; set; }
+        
+        public required string Salt { get; set; }
+
+        public required string FullName { get; set; }
+        public required string City { get; set; }
+         public required string PostalCode { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public required string PhoneNumber { get; set; } // Optionnel
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? LastLogin { get; set; }
+         public required bool AccountStatus  {get; set; }   // false=normale true= user suspendu
+        public bool TwoFactorEnabled { get; set; } 
+        public required bool  SubscriptionPlan { get; set; }  //false=gratuit true=payant  //avoir si on peut le faire
+        public bool IsOnline { get; set; } 
+        public required RoleManager Role { get; set; }
+
+        public required bool IsActive { get; set; }
+        
     }
 }

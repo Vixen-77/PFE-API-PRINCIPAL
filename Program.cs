@@ -81,13 +81,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseRouting();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
-app.UseCors("AllowReactApp");
-app.UseAuthorization();
-app.MapControllers();
+app.UseCors("AllowReactApp"); // Doit être avant l'auth
+app.UseAuthorization(); // Bien placé avant MapControllers
+app.MapControllers(); // Plus besoin de UseEndpoints !
 app.MapGet("/", () => "Hello, ASP.NET Core! Répond parfaitement!");
+app.Run();
 
 app.Run();
