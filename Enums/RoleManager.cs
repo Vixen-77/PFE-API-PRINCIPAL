@@ -4,6 +4,9 @@ namespace APIAPP.Enums
     {
         RespHop = 30,
         ProfSanté = 20,
-        Patient =10
+        Patient =10,
+
+        none =0,
+
     }
 }

@@ -22,6 +22,7 @@ if (string.IsNullOrEmpty(appUrl) || string.IsNullOrEmpty(reactAppUrl))
 builder.WebHost.UseUrls(appUrl);
 
 // Ajout des services avant builder.Build()
+
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();

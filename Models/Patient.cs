@@ -13,7 +13,7 @@ namespace APIAPP.Models
         
         
         public required string MedicalRecordPath { get; set; } //lien du fichier du patient au moment de l'inscription
-         public required string IdentityRecordPath { get; set; } //lien du fichier du carte identité
+        public required string IdentityRecordPath { get; set; } //lien du fichier du carte identité
         [EmailAddress]
         public required string MailMed { get; set;} 
         public int? NbSec { get; set;} 
@@ -47,6 +47,9 @@ namespace APIAPP.Models
         public required RoleManager Role { get; set; }
 
         public required bool IsActive { get; set; }
+         public bool IsValidated { get; set; }  // Par défaut : false et se mettra a true plus tard 
+         public required string ValidationToken { get; set; }  // Token de validation envoyé au médecin
+        
         
     }
 }

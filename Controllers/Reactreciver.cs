@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Cors;
-
 [ApiController]
 [Route ("api/react")]
 
@@ -18,8 +17,9 @@ using Microsoft.AspNetCore.Cors;
             Status = "Success",
             Timestamp = DateTime.UtcNow
         };
-
+        
         return Ok(response);
     }
    
  }
+ //controlleur a enlver et updater ,

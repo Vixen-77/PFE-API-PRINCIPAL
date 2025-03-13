@@ -1,16 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using APIAPP.Enums;
 
 
 namespace APIAPP.Models
 {
-    public class SignInRequest
+    public class Desactivation
     {
 
-        public required int Role {get; set;} 
+        public required RoleManager Role {get; set;} 
         [EmailAddress]
         public required string Email { get; set; }
-        public required string PasswordHash { get; set; }
+        public required string Password { get; set; }
     }
 }

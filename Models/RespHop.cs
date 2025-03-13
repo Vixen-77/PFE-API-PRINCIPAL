@@ -36,7 +36,6 @@ public class RespHop
         public required RoleManager Role { get; set; }
 
         public required bool IsActive { get; set; }
-   
-
+        public required string KeyACC {get; set;}
 }
 }
