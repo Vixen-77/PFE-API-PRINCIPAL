@@ -20,6 +20,7 @@ namespace APIAPP.Data
         public DbSet<Proche> Proches { get; set; }
         public DbSet<Centre> Centres { get; set; }
         public DbSet<ProS> ProSs { get; set; }
+    
        
     }   
 }

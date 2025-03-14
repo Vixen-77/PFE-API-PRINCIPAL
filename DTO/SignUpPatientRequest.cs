@@ -15,5 +15,7 @@ public class SignUpPatientRequest
         public required string MailMed { get; set;} 
         public IFormFile? File { get; set; } // Ajout du fichier uploadé
         public IFormFile? FileIdentity {get; set;}
+
+        
 }
 }

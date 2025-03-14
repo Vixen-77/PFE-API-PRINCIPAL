@@ -11,7 +11,7 @@ namespace APIAPP.Models
       public required bool AcceptRequest { get; set; } // true si le proS accepte l'urgence 
       public required bool CheckedSchedule { get; set; } // true si le proS a a consulté toute les alerte 
 
-      public required string IdentityDiplome { get; set; }
+        public  string? KeyMed { get; set; }
 
 
       [Key]

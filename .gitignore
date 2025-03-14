@@ -12,9 +12,10 @@
 *.user
 *.userosscache
 *.sln.docstates
-
+*.
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+*key-fe565944-6c2d-4a17-9052-20f52f58dd26.xml
 
 # Mono auto generated files
 mono_crash.*

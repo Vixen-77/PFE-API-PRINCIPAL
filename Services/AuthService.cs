@@ -7,7 +7,7 @@
 
 
 /////////////////////////////////////////////////TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO://////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////TODO:RVOIR TOUTE LES ERREURFIXME:FIXME:FIXME:TODO://///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////TODO:FINALISé  NE LE TOUCHE PAS RACIME SAUF AVEC MON ACCORD TODO://///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO://///////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +27,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using APIAPP.DTO;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using APIAPP.Exceptions;
 
 
 namespace APIAPP.Services
@@ -59,18 +60,11 @@ namespace APIAPP.Services
               {
                 var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
                 var jsonString = JsonSerializer.Serialize(myObject); 
+                 throw new  AuthException("il est possible qu' Aucun patient trouvé avec cet email.",401);
               }
-              var valide =_context.Patients.FirstOrDefault(p =>p.IsValidated ==validation );
-              if (patient != null && patient.isValidated == false)
-
-              {
-                return "Compte en attente de validation.";
-              }
-              else
-              {
+              
                     // Générer le token JWT
-                  return _jwtService.GenerateToken(patient);
-              }
+                    return _jwtService.GenerateTokenPatient(patient);
         }
 
         public string SignInProSante(string email, string password)
@@ -80,11 +74,12 @@ namespace APIAPP.Services
               {
                 var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
                 var jsonString = JsonSerializer.Serialize(myObject);
+                throw new AuthException("il est possible qu' Aucun profecionel de santé trouvé avec cet email.",401);
                 
               }
 
                 // Générer le token JWT
-                return _jwtService.GenerateToken(prosante);
+                return _jwtService.GenerateTokenProS(prosante);
         }
 
         public string SignInRespoHopital(string email, string password)
@@ -94,11 +89,12 @@ namespace APIAPP.Services
               {
                 var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
                 var jsonString = JsonSerializer.Serialize(myObject);
+                throw new AuthException("il est possible qu' Aucun responsable d'hopitale trouvé avec cet email.",401);
                 
               }
 
                 // Générer le token JWT
-                return _jwtService.GenerateToken(respHop);
+                return _jwtService.GenerateTokenRespHop(respHop);
         }
 
 
@@ -139,12 +135,12 @@ namespace APIAPP.Services
                 TwoFactorEnabled = false,
                 SubscriptionPlan = false,
                 IsOnline = false,
-                State= UserState.Pieton, //par defaut mais le user peut le changé ou bien changement par automatisation
+                State= UserState.Conducteur, //par defaut mais le user peut le changé ou bien changement par automatisation
                 MedicalRecordPath = "path/to/medical/record", // Définir le chemin du dossier médical
                 IdentityRecordPath = "path/to/identity/record", // Définir le chemin du dossier d'identité
                 MailMed = request.Email, // Définir l'email médical
                 IdProche = Guid.NewGuid(), // Définir l'ID du proche
-                ValidationToken = 
+                ValidationToken =  string.Empty,
                 IsValidated = false,
                 // Initialiser l'objet Proche
                 Proche = new Proche 
@@ -184,7 +180,8 @@ namespace APIAPP.Services
               IsAvailable = true,
               AcceptRequest = true,
               CheckedSchedule = true,
-              IdentityDiplome = "path/to/diplome", // Définir le chemin du diplôme
+              KeyMed ="test"
+              // Définir le chemin du diplôme
             };
 
             _context.ProSs.Add(newPro);
@@ -215,7 +212,7 @@ namespace APIAPP.Services
              PhoneNumber = request.PhoneNumber,
              AccountStatus = false,// Assurez-vous que AccountStatus est défini
              SubscriptionPlan = true, // Définir la valeur appropriée
-             KeyACC = "some-key" // Définir la valeur appropriée
+             KeyACC = string.Empty// Définir la valeur appropriée
         };
 
             _context.RespHops.Add(newRespo);
@@ -292,3 +289,13 @@ namespace APIAPP.Services
         }
     }
 }
+
+
+//a reutiliser FIXME:
+
+/*var valide = _context.Patients.FirstOrDefault(p => p.IsValidated == validation);
+
+              if (valide == null || !valide.IsValidated) // Vérifie que l'objet n'est pas null et que IsValidated est false
+              {
+                    return "Compte en attente de validation.";
+              }*/

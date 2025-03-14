@@ -2,14 +2,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using APIAPP.Data; 
+using APIAPP.Services;
 using DotNetEnv; 
 using APIAPP.Models;
 using APIAPP.Enums;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.Extensions;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Charger les variables depuis .env
-Env.Load();
+Env.Load("C:\\Users\\ASUS\\Desktop\\PFE3.0\\APIprincipal\\APIAPP\\.env");
 var appUrl = Env.GetString("API_URL"); 
 var reactAppUrl = Env.GetString("REACT_URL");
 
@@ -22,7 +33,14 @@ if (string.IsNullOrEmpty(appUrl) || string.IsNullOrEmpty(reactAppUrl))
 builder.WebHost.UseUrls(appUrl);
 
 // Ajout des services avant builder.Build()
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\Users\ASUS\Desktop\PFE3.0\APIprincipal\APIAPP"))
+    .SetApplicationName("MonApplication");
 
+
+    //ingnoré le warning du chiffrement 
+builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddScoped<AuthService>(); 
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
@@ -31,6 +49,36 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+
+
+// Configuration JWT (📌 Ajouté ici)
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = Env.GetString("JWT_SECRETE");
+Console.WriteLine($"Clé secrète récupérée : {secretKey}");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+    });
+
+// Ajout de l'autorisation (📌 Obligatoire après l'authentification)
+builder.Services.AddAuthorization();
+
+// Ajout du service JWT (📌 Permet de générer des tokens)
+builder.Services.AddSingleton<JWTService>();
+
+
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
@@ -41,6 +89,65 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build(); // ICI on fige le service !
+
+// Middleware après builder.Build()
+if (app.Environment.IsDevelopment()) 
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+app.UseRouting();
+app.UseCors("AllowReactApp"); // Doit être avant l'auth
+app.UseAuthorization(); // Bien placé avant MapControllers
+app.MapControllers(); // Plus besoin de UseEndpoints !
+app.MapGet("/", () => "Hello, ASP.NET Core! Répond parfaitement!");
+
+app.Run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // **Ajout de données après app.Build()**
 /*using (var scope = app.Services.CreateScope())
@@ -74,18 +181,3 @@ var app = builder.Build(); // ICI on fige le service !
         context.SaveChanges();
     }
 }*/
-
-// Middleware après builder.Build()
-if (app.Environment.IsDevelopment()) 
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-app.UseRouting();
-app.UseCors("AllowReactApp"); // Doit être avant l'auth
-app.UseAuthorization(); // Bien placé avant MapControllers
-app.MapControllers(); // Plus besoin de UseEndpoints !
-app.MapGet("/", () => "Hello, ASP.NET Core! Répond parfaitement!");
-app.Run();
-
-app.Run();

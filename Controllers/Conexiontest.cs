@@ -14,8 +14,8 @@ using Microsoft.AspNetCore.Cors;
         var response = new
         {
             Message = "Hello, React! This is your JSON",
-            Status = "Success",
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTime.UtcNow,
+            State = "connexion etablie avec succes"
         };
         
         return Ok(response);

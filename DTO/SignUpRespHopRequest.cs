@@ -13,8 +13,8 @@ public class SignUpRespHopRequest
         public required string PhoneNumber { get; set; } // Optionnel
         public required RoleManager Role { get; set; }
         public required string MailMed { get; set;} 
-        public IFormFile? File { get; set; } // Ajout du fichier uploadé
-        public IFormFile? FileIdentity {get; set;}
         public required string KeyACC {get; set;}
+
+        
 }
 }
