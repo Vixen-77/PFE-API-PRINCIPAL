@@ -12,9 +12,6 @@ public class SignUpRespHopRequest
         public DateTime DateOfBirth { get; set; }
         public required string PhoneNumber { get; set; } // Optionnel
         public required RoleManager Role { get; set; }
-        public required string MailMed { get; set;} 
-        public required string KeyACC {get; set;}
-
         
 }
 }

@@ -13,22 +13,21 @@ using Microsoft.EntityFrameworkCore;
 using APIAPP.Data;
 
 [ApiController]
-[Route("api/authprosrespHop")]
+[Route("api/auth")]
 public class ProSetRespHopCotrlSignIn : ControllerBase
 {
     private readonly AuthService _authService;
     private readonly ILogger<ProSetRespHopCotrlSignIn> _logger;
-    private readonly string _uploadFolder;
+
 
     // 🔹 Constructeur avec injection de dépendances
     public ProSetRespHopCotrlSignIn(AuthService authService, ILogger<ProSetRespHopCotrlSignIn> logger)
     {
         _authService = authService;
         _logger = logger;
-        _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
     }
 
-    [HttpPost("signin")]
+    [HttpPost("signinProSetRespHop")]
     [EnableCors("AllowReactApp")]
     public IActionResult SignIn([FromBody] SignInRequestProSrespHop request)
     {
@@ -46,7 +45,6 @@ public class ProSetRespHopCotrlSignIn : ControllerBase
         }
 
           string token = string.Empty;
-         // var valide = _context.Patients.FirstOrDefault(p => p.IsValidated == validation); //:FIXME:
 
         // 🔹 Sélection du service selon le rôle
         switch (request.Role)

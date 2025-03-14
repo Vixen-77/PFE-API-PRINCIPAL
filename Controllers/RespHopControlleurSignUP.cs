@@ -10,23 +10,21 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-[Route("api/authRespHop")]
+[Route("api/auth")]
 [ApiController]
 public class RespHopControlleurSignUP : ControllerBase
 {
    private readonly AuthService _authService;
     private readonly ILogger<RespHopControlleurSignUP> _logger;
-    private readonly string _uploadFolder;
 
     // 🔹 Constructeur avec injection de dépendances
     public RespHopControlleurSignUP(AuthService authService, ILogger<RespHopControlleurSignUP> logger)
     {
         _authService = authService;
         _logger = logger;
-        _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
     }
 
-    [HttpPost("signup")]
+    [HttpPost("signupRespHop")]
     [EnableCors("AllowReactApp")]
     public IActionResult SignUp([FromBody] SignUpRespHopRequest request)
     {

@@ -12,8 +12,7 @@ namespace APIAPP.Models
     {
         
         
-        public required string MedicalRecordPath { get; set; } //lien du fichier du patient au moment de l'inscription
-        public required string IdentityRecordPath { get; set; } //lien du fichier du carte identité
+        public  string? MedicalRecordPath { get; set; } //lien du fichier du patient au moment de l'inscription
         [EmailAddress]
         public required string MailMed { get; set;} 
         public int? NbSec { get; set;} 
@@ -22,9 +21,10 @@ namespace APIAPP.Models
 
         public required UserState State { get; set; } // l'état du patient
 
+       
         public virtual required Proche Proche { get; set; } // navigation property
         [Key]
-        public Guid UID { get; set; } 
+        public required Guid UID { get; set; } 
     
         [EmailAddress]
         public required string Email { get; set; }
@@ -36,7 +36,7 @@ namespace APIAPP.Models
         public required string FullName { get; set; }
         public required string City { get; set; }
          public required string PostalCode { get; set; }
-        public DateTime DateOfBirth { get; set; }
+         public required DateTime DateOfBirth { get; set; }
         public required string PhoneNumber { get; set; } // Optionnel
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLogin { get; set; }
@@ -48,7 +48,6 @@ namespace APIAPP.Models
 
         public required bool IsActive { get; set; }
          public bool IsValidated { get; set; }  // Par défaut : false et se mettra a true plus tard 
-         public required string ValidationToken { get; set; }  // Token de validation envoyé au médecin
         
         
     }

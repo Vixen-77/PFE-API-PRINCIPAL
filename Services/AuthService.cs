@@ -28,6 +28,8 @@ using System.Text.Json;
 using APIAPP.DTO;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using APIAPP.Exceptions;
+using Microsoft.AspNetCore.Antiforgery;
+using Azure.Core;
 
 
 namespace APIAPP.Services
@@ -55,7 +57,7 @@ namespace APIAPP.Services
 
         public string SignInPatient(string email, string password,bool validation)
         {
-            var patient = _context.Patients.FirstOrDefault(p => p.Email == email);
+            var patient = _context.Patients.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
             if (patient == null || !VerifyPassword(password, patient.PasswordHash, patient.Salt))
               {
                 var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
@@ -69,7 +71,7 @@ namespace APIAPP.Services
 
         public string SignInProSante(string email, string password)
         {
-            var prosante = _context.ProSs.FirstOrDefault(p => p.Email == email);
+            var prosante = _context.ProSs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
             if (prosante == null || !VerifyPassword(password, prosante.PasswordHash, prosante.Salt))
               {
                 var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
@@ -84,7 +86,7 @@ namespace APIAPP.Services
 
         public string SignInRespoHopital(string email, string password)
         {
-            var respHop = _context.RespHops.FirstOrDefault(p => p.Email == email);
+            var respHop = _context.RespHops.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
             if (respHop == null || !VerifyPassword(password, respHop.PasswordHash, respHop.Salt))
               {
                 var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
@@ -111,24 +113,26 @@ namespace APIAPP.Services
 
         public bool SignUpPatient(SignUpPatientRequest request) // FIXME:
         {
-            if (_context.Patients.Any(p => p.Email == request.Email))
+            if (_context.Patients.Any(p => p.Email.ToLower()== request.Email.ToLower()))
                 return false;
 
             string salt = GenerateSalt();
             string hashedPassword = HashPassword(request.PasswordHash, salt);
 
             var newPatient = new Patient
-            {
-                FullName = request.FullName,
-                Email = request.Email,
-                PasswordHash = hashedPassword,
+
+            {   
+                UID= Guid.NewGuid(),
+                FullName = request.FullName, //1
+                Email = request.Email, //2
+                PasswordHash = hashedPassword,//9
                 Salt = salt,
-                Role = request.Role,
+                Role = request.Role,//3
                 IsActive = true,
-                City = request.City,
-                PostalCode = request.PostalCode,
-                DateOfBirth = request.DateOfBirth,
-                PhoneNumber = request.PhoneNumber,
+                City = request.City,//4
+                PostalCode = request.PostalCode, //5
+                DateOfBirth = request.DateOfBirth,//6
+                PhoneNumber = request.PhoneNumber,//7
                 CreatedAt = DateTime.UtcNow,
                 LastLogin = null,
                 AccountStatus = false,
@@ -136,11 +140,9 @@ namespace APIAPP.Services
                 SubscriptionPlan = false,
                 IsOnline = false,
                 State= UserState.Conducteur, //par defaut mais le user peut le changé ou bien changement par automatisation
-                MedicalRecordPath = "path/to/medical/record", // Définir le chemin du dossier médical
-                IdentityRecordPath = "path/to/identity/record", // Définir le chemin du dossier d'identité
-                MailMed = request.Email, // Définir l'email médical
+                MedicalRecordPath = string.Empty, // Définir le chemin du dossier médical
+                MailMed = request.Email, // Définir l'email médical //8
                 IdProche = Guid.NewGuid(), // Définir l'ID du proche
-                ValidationToken =  string.Empty,
                 IsValidated = false,
                 // Initialiser l'objet Proche
                 Proche = new Proche 
@@ -165,23 +167,28 @@ namespace APIAPP.Services
             string hashedPassword = HashPassword(request.PasswordHash, salt);
 
             var newPro = new ProS
+
             {
-              FullName = request.FullName,
-              Email = request.Email,
-              PasswordHash = hashedPassword,
+              UID =Guid.NewGuid(),
+              FullName = request.FullName, //1
+              Email = request.Email,//2
+              PasswordHash = hashedPassword,//3
               Salt = salt,
-              Role = request.Role, // Conversion explicite
+              Role = request.Role, // Conversion explicite//4
               IsActive = true,
-              City = request.City,
-              PostalCode = request.PostalCode,
-              PhoneNumber = request.PhoneNumber,
+              City = request.City,//5
+              PostalCode = request.PostalCode,//6
+              DateOfBirth = request.DateOfBirth,//7
+              PhoneNumber = request.PhoneNumber,//8
+              CreatedAt = DateTime.UtcNow,
               AccountStatus = false,
               SubscriptionPlan = true,
               IsAvailable = true,
               AcceptRequest = true,
               CheckedSchedule = true,
-              KeyMed ="test"
-              // Définir le chemin du diplôme
+              TwoFactorEnabled = false,
+              IsOnline = false,
+              LastLogin= DateTime.UtcNow,
             };
 
             _context.ProSs.Add(newPro);
@@ -198,21 +205,27 @@ namespace APIAPP.Services
             string hashedPassword = HashPassword(request.PasswordHash, salt);
 
            var newRespo = new RespHop
-        {
-             FullName = request.FullName,
-             Email = request.Email,
-             PasswordHash = hashedPassword,
+
+        {    
+             UID = Guid.NewGuid(),
+             FullName = request.FullName, //1
+             Email = request.Email, //2
+             PasswordHash = hashedPassword,//3
              Salt = salt,
-             Role = RoleManager.RespHop, // Conversion explicite
+             Role = request.Role, // 4Conversion explicite
              IsActive = true,
              isAmbulanceReady = false, // Définir la valeur appropriée
              IDCentre = Guid.NewGuid(),// Assurez-vous que cette propriété est définie dans SignUpRequest
-             City = request.City,
+             City = request.City,//5
              PostalCode = request.PostalCode,
-             PhoneNumber = request.PhoneNumber,
+             DateOfBirth =request.DateOfBirth,//6
+             PhoneNumber = request.PhoneNumber,//7
              AccountStatus = false,// Assurez-vous que AccountStatus est défini
-             SubscriptionPlan = true, // Définir la valeur appropriée
-             KeyACC = string.Empty// Définir la valeur appropriée
+             SubscriptionPlan = true, 
+             IsOnline = false,
+             TwoFactorEnabled =false,
+             LastLogin =DateTime.UtcNow,
+             CreatedAt =DateTime.UtcNow,// Définir la valeur appropriée
         };
 
             _context.RespHops.Add(newRespo);
@@ -231,22 +244,19 @@ namespace APIAPP.Services
             return _revokedTokens.Contains(token);
         }
 
-        // 4️⃣ Désactivation du compte
-        /*public bool DesactivateAccount(Desactivation request) //FIXME:
+     //TODO:code de la methode pour mettre a jour is validated a true apres que le medecin a valider le docier 
 
-
-        {
-          
-          
-          
-            //faire un switch 
-        }*/
-
-
-
-
-
-
+     public bool Confirmvalidation(string email)
+     {
+         var patient = _context.Patients.FirstOrDefault(p => p.Email == email);
+         if (patient != null)
+         {
+             patient.IsValidated = true;
+             _context.SaveChanges();
+             return true; // Return true if validation is successful
+         }
+         return false; // Return false if no patient is found
+     }
 
 
 
@@ -299,3 +309,59 @@ namespace APIAPP.Services
               {
                     return "Compte en attente de validation.";
               }*/
+
+
+
+
+
+              /*FullName = request.FullName, //1         
+                Email = request.Email, //2
+                PasswordHash = hashedPassword,//9
+                Salt = salt,
+                Role = request.Role,//3
+                IsActive = true,
+                City = request.City,//4
+                PostalCode = request.PostalCode, //5
+                DateOfBirth = request.DateOfBirth,//6
+                PhoneNumber = request.PhoneNumber,//7
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = null,
+                AccountStatus = false,
+                TwoFactorEnabled = false,
+                SubscriptionPlan = false,
+                IsOnline = false,*/
+
+
+                /* FullName = request.FullName, //1
+              Email = request.Email,//2
+              PasswordHash = hashedPassword,//3
+              Salt = salt,
+              Role = request.Role, // Conversion explicite//4
+              IsActive = true,
+              City = request.City,//5
+              PostalCode = request.PostalCode,//6
+              DateOfBirth = request.DateOfBirth,//7
+              PhoneNumber = request.PhoneNumber,//8
+              CreatedAt = DateTime.UtcNow,
+              AccountStatus = false,
+              SubscriptionPlan = true,
+              IsAvailable = true,
+              AcceptRequest = true,
+              CheckedSchedule = true,
+              TwoFactorEnabled = false,
+              IsOnline = false,*/
+
+            /* FullName = request.FullName, //1
+             Email = request.Email, //2
+             PasswordHash = hashedPassword,//3
+             Salt = salt,
+             Role = request.Role, // 4Conversion explicite
+             IsActive = true,
+             isAmbulanceReady = false, // Définir la valeur appropriée
+             IDCentre = Guid.NewGuid(),// Assurez-vous que cette propriété est définie dans SignUpRequest
+             City = request.City,//5
+             PostalCode = request.PostalCode,
+             DateOfBirth =request.DateOfBirth,//6
+             PhoneNumber = request.PhoneNumber,//7
+             AccountStatus = false,// Assurez-vous que AccountStatus est défini
+             SubscriptionPlan = true, // Définir la valeur appropriée*/

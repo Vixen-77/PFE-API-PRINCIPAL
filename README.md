@@ -51,9 +51,9 @@ Dans la base de données, ces valeurs seront enregistrées sous forme d'entiers.
 
 Notes sur le code
 
-Les FIXME : Indiquent des sections où des corrections sont nécessaires.
+Les FIXME n'éxiste plus tout les code sont ajours et optimisé et les bugs on etait enlever 
 
-JE MEN OCCUPE PERSONELMENET NTAYA Gère selmement les methodes patient , ProS, et RespHop
+JE MEN OCCUPE PERSONELMENET des docier controlleur et le docier service NTAYA Gère selmement les methodes patient , ProS, et RespHop
 les fichier QUIL NE FAUT SURTOUT PAS TOUCHé sont 
 
  /Services/JWTService.cs

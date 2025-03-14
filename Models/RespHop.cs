@@ -13,7 +13,7 @@ public class RespHop
     public required Guid IDCentre { get; set; }
 
     [Key]
-        public Guid UID { get; set; } 
+        public required Guid UID { get; set; } 
     
         [EmailAddress]
         public required string Email { get; set; }
@@ -27,7 +27,7 @@ public class RespHop
          public required string PostalCode { get; set; }
         public DateTime DateOfBirth { get; set; }
         public required string PhoneNumber { get; set; } // Optionnel
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } 
         public DateTime? LastLogin { get; set; }
          public required bool AccountStatus  {get; set; }   // false=normale true= user suspendu
         public bool TwoFactorEnabled { get; set; } 
@@ -36,6 +36,6 @@ public class RespHop
         public required RoleManager Role { get; set; }
 
         public required bool IsActive { get; set; }
-        public string? KeyACC {get; set;}
+
 }
 }

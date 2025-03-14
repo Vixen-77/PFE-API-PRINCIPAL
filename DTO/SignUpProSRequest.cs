@@ -12,8 +12,5 @@ public class SignUpProSRequest
         public DateTime DateOfBirth { get; set; }
         public required string PhoneNumber { get; set; } // Optionnel
         public required RoleManager Role { get; set; }
-        public required string MailMed { get; set;} 
-        public IFormFile? FileDiplome { get; set; } // Ajout du fichier uploadé
-        public IFormFile? FileIdentity {get; set;}
 }
 }

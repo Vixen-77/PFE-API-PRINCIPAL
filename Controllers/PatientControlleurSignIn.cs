@@ -22,14 +22,13 @@ public class PatientControlleurSignIn : ControllerBase
 {
     private readonly AuthService _authService;
     private readonly ILogger<PatientControlleurSignIn> _logger;
-    private readonly string _uploadFolder;
+    
 
     // 🔹 Constructeur avec injection de dépendances
     public PatientControlleurSignIn(AuthService authService, ILogger<PatientControlleurSignIn> logger)
     {
         _authService = authService;
         _logger = logger;
-        _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
     }
 
     [HttpPost("signin")]

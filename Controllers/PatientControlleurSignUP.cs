@@ -10,7 +10,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-[Route("api/authpatient")]
+[Route("api/auth")]
 [ApiController]
 public class PatientControlleurSignUP : ControllerBase
 {
@@ -26,7 +26,7 @@ public class PatientControlleurSignUP : ControllerBase
         _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
     }
 
-    [HttpPost("signup")]
+    [HttpPost("signupPatient")]
     [EnableCors("AllowReactApp")]
     public IActionResult SignUp([FromBody] SignUpPatientRequest request)
     {
@@ -45,6 +45,12 @@ public class PatientControlleurSignUP : ControllerBase
     return Ok(new { message = "User registered successfully" });
    }
 }
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////
 /*public IActionResult GetJson()
     {
         var response = new
