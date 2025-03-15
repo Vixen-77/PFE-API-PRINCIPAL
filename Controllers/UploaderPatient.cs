@@ -71,12 +71,19 @@ public class UploaderPatient : ControllerBase
             string validationUrl = $"http://localhost:5000/api/uploadsPatient/validate?userId={userId}&approve=true";
             string rejectionUrl = $"http://localhost:5000/api/uploadsPatient/validate?userId={userId}&approve=false";
 
+
+            // TODO: définir le corp des mail envoyé au medecin et au patient 
             string emailBody = $@"
                 <h2>Validation du Dossier Patient</h2>
                 <p>Un nouveau patient s'est inscrit. Vous pouvez consulter son dossier et le valider.</p>
                 <p><a href='{validationUrl}'>✅ Confirmer</a> | <a href='{rejectionUrl}'>❌ Refuser</a></p>
             ";
+            string emailBodyPatient = $@"
+                <h2>Validation du Dossier Patient</h2>
+                <p>votre docier a était valider avec succes vous pouvez revenir a la platfrome pour se connecter !.</p>
+            ";
 
+            
             // ✉️ Envoi de l'email au médecin
             bool emailSent = await _emailService.SendEmailAsync(doctorEmail, "Validation du Dossier Patient", emailBody);
             
@@ -84,12 +91,18 @@ public class UploaderPatient : ControllerBase
             {
                 throw new Exception("Échec de l'envoi de l'e-mail au médecin.");
             }
-            else{
-                 bool changementvalidationtotrue = _authService.Confirmvalidation(notrepatientmail);
-                 bool emailSentauPatient = await _emailService.SendEmailAsync(notrepatientmail, "Validation du Dossier Patient", emailBody);  
-             
-                 return Ok(new { message = "Patient enregistré, e-mail envoyé au médecin pour validation." });
-            }
+            else
+                { bool changementvalidationtotrue = _authService.Confirmvalidation(notrepatientmail);
+
+                  if(changementvalidationtotrue == true)
+                  {
+
+                     bool emailSentauPatient = await _emailService.SendEmailAsync(notrepatientmail, "Vous etes Validé!", emailBodyPatient);  
+
+                  } 
+                 
+                  return Ok(new { message = "Patient enregistré, e-mail envoyé au médecin pour validation." });
+                }
         }
         catch (Exception ex)
         {
@@ -97,4 +110,4 @@ public class UploaderPatient : ControllerBase
             return StatusCode(500, "Erreur interne du serveur");
         }
     }
-}
+}  
