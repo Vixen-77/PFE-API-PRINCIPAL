@@ -14,15 +14,13 @@
 
 
 
-using APIAPP.Models;
-using APIAPP.Data;
+using LibrarySSMS;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using APIAPP.Enums;
+using LibrarySSMS.Enums;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APIAPP.DTO;
@@ -30,17 +28,19 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using APIAPP.Exceptions;
 using Microsoft.AspNetCore.Antiforgery;
 using Azure.Core;
-
+using LibrarySSMS.Models;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace APIAPP.Services
 {
     public class AuthService
     {   //FIXME: jwt a un probleme a reguler le plus vite possible 
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
         private readonly JWTService _jwtService;
         private readonly HashSet<string> _revokedTokens = new HashSet<string>();
 
-        public AuthService(ApplicationDbContext context, JWTService jwtService)
+        public AuthService(AppDbContext context, JWTService jwtService)
         {
             _context = context;
             _jwtService = jwtService;
@@ -57,8 +57,8 @@ namespace APIAPP.Services
 
         public string SignInPatient(string email, string password,bool validation)
         {
-            var patient = _context.Patients.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
-            if (patient == null || !VerifyPassword(password, patient.PasswordHash, patient.Salt))
+            var Patient = _context.Patientss.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
+            if (Patient == null || !VerifyPassword(password, Patient.PasswordHash, Patient.Salt))
               {
                 var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
                 var jsonString = JsonSerializer.Serialize(myObject); 
@@ -66,7 +66,8 @@ namespace APIAPP.Services
               }
               
                     // Générer le token JWT
-                    return _jwtService.GenerateTokenPatient(patient);
+                    return _jwtService.GenerateTokenPatient(Patient);
+                    
         }
 
         public string SignInProSante(string email, string password)
@@ -100,7 +101,41 @@ namespace APIAPP.Services
         }
 
 
+        
+        public string SignInAdmin(string email, string password , Guid key)
+        {
+         var admin = _context.Admins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
 
+
+          if (admin == null || !VerifyPassword(password, admin.PasswordHash, admin.Salt))
+              {
+                var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
+                var jsonString = JsonSerializer.Serialize(myObject);
+                throw new AuthException("il est possible qu'Aucun admin trouvé avec cet email.",401);
+                
+              }
+
+                // Générer le token JWT
+                return _jwtService.GenerateTokenAdmin(admin);
+        }
+
+
+        public string SignInSuperAdmin(string email, string password , Guid key)
+        {
+         var superadmin = _context.SuperAdmins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
+
+
+          if (superadmin == null || !VerifyPassword(password, superadmin.PasswordHash, superadmin.Salt))
+              {
+                var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
+                var jsonString = JsonSerializer.Serialize(myObject);
+                throw new AuthException("il est possible qu'Aucun Super admin trouvé avec cet email.",401);
+                
+              }
+
+                // Générer le token JWT
+                return _jwtService.GenerateTokenSuperAdmin(superadmin);
+        }
 
 
 
@@ -113,7 +148,7 @@ namespace APIAPP.Services
 
         public bool SignUpPatient(SignUpPatientRequest request) // FIXME:
         {
-            if (_context.Patients.Any(p => p.Email.ToLower()== request.Email.ToLower()))
+            if (_context.Patientss.Any(p => p.Email.ToLower()== request.Email.ToLower()))
                 return false;
 
             string salt = GenerateSalt();
@@ -123,7 +158,8 @@ namespace APIAPP.Services
 
             {   
                 UID= Guid.NewGuid(),
-                FullName = request.FullName, //1
+                Name = request.Name, //1
+                LastName = request.LastName, //1
                 Email = request.Email, //2
                 PasswordHash = hashedPassword,//9
                 Salt = salt,
@@ -137,23 +173,31 @@ namespace APIAPP.Services
                 LastLogin = null,
                 AccountStatus = false,
                 TwoFactorEnabled = false,
+                IdProche = Guid.NewGuid(),
                 SubscriptionPlan = false,
                 IsOnline = false,
                 State= UserState.Conducteur, //par defaut mais le user peut le changé ou bien changement par automatisation
                 MedicalRecordPath = string.Empty, // Définir le chemin du dossier médical
                 MailMed = request.Email, // Définir l'email médical //8
-                IdProche = Guid.NewGuid(), // Définir l'ID du proche
                 IsValidated = false,
-                // Initialiser l'objet Proche
+                IdphoneP = null,
+                IdSmartwatchP =null,
+                IdSmartwatchNewGenP=null,
+                IdVehiculeOBUP=null,
+                IdCGMP=null,
+                Age =request.Age,
+                Gender =request.Gender,  //0 si femme et 1 si homme
+                Weight = request.Weight, 
+                Height = request.Height,
                 Proche = new Proche 
-               {
+                {
                   Name = null,
                   PhoneNumber = null,
                   IdProche = Guid.NewGuid() // Assurez-vous que cette propriété est correctement définie
                 }
             };
 
-            _context.Patients.Add(newPatient);
+            _context.Patientss.Add(newPatient);
             _context.SaveChanges();
             return true;
         }
@@ -215,7 +259,7 @@ namespace APIAPP.Services
              Role = request.Role, // 4Conversion explicite
              IsActive = true,
              isAmbulanceReady = false, // Définir la valeur appropriée
-             IDCentre = Guid.NewGuid(),// Assurez-vous que cette propriété est définie dans SignUpRequest
+            // IDCentre = Guid.NewGuid(),//FIXME: a RAJOUTER DANS LA Librérie
              City = request.City,//5
              PostalCode = request.PostalCode,
              DateOfBirth =request.DateOfBirth,//6
@@ -225,12 +269,15 @@ namespace APIAPP.Services
              IsOnline = false,
              TwoFactorEnabled =false,
              LastLogin =DateTime.UtcNow,
-             CreatedAt =DateTime.UtcNow,// Définir la valeur appropriée
+             CreatedAt =DateTime.UtcNow,
+             IdVehiculeOBUSV=null// Définir la valeur appropriée
+
         };
 
-            _context.RespHops.Add(newRespo);
+            _context.RespHops.Add(newRespo);                                                                           
             _context.SaveChanges();
             return true;
+            
         }
 
         // 3️⃣ Déconnexion
@@ -248,7 +295,7 @@ namespace APIAPP.Services
 
      public bool Confirmvalidation(string email)
      {
-         var patient = _context.Patients.FirstOrDefault(p => p.Email == email);
+         var patient = _context.Patientss.FirstOrDefault(p => p.Email == email);
          if (patient != null)
          {
              patient.IsValidated = true;
@@ -299,6 +346,52 @@ namespace APIAPP.Services
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //a reutiliser FIXME:

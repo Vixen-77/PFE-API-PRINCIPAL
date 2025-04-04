@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 
 
-namespace APIAPP.Models
+namespace APIAPP.DTO
 {
     public class SignInRequest
     {

@@ -13,22 +13,22 @@ using APIAPP.DTO;
 [ApiController]
 [Route("api/auth")]
 
-public class PatientControlleurSignIn : ControllerBase
+public class AdminSignIn : ControllerBase
 {
     private readonly AuthService _authService;
-    private readonly ILogger<PatientControlleurSignIn> _logger;
+    private readonly ILogger<AdminSignIn> _logger;
     
 
     // 🔹 Constructeur avec injection de dépendances
-    public PatientControlleurSignIn(AuthService authService, ILogger<PatientControlleurSignIn> logger)
+    public AdminSignIn(AuthService authService, ILogger<AdminSignIn> logger)
     {
         _authService = authService;
         _logger = logger;
     }
 
-    [HttpPost("signin")]
+    [HttpPost("signinAdmin")]
     [EnableCors("AllowReactApp")]
-    public IActionResult SignIn([FromBody] SignInRequest request)
+    public IActionResult SignIn([FromBody] SignInRequestAdminSuperAdmin request)
     {    
         if (request == null)
         {
@@ -47,36 +47,24 @@ public class PatientControlleurSignIn : ControllerBase
 
         // 🔹 Sélection du service selon le rôle
        
-        if (request.Role == 10) {token = _authService.SignInPatient(request.Email, request.PasswordHash,request.Validation); }
-        // 🔹 Si l'authentification échoue"
+        if (request.Role == 40) {token = _authService.SignInAdmin(request.Email, request.PasswordHash,request.UIDKEY); }
+        // Si l'authent échoue"
         if (token == null)
         {
             _logger.LogWarning("Échec de l'authentification pour {Email}", request.Email);
             return Unauthorized(new { message = "Email ou mot de passe incorrect." });
         }
 
-        // 🔹 En cas de succès, on renvoie un JSON vers React
+        //  En cas de succès, on renvoie un JSON vers React
         _logger.LogInformation("Utilisateur {Email} authentifié avec succès en tant que {Role}.", request.Email, request.Role);
         return Ok(new
         {
             message = "Authentification réussie",
             role = request.Role,
-            data = token  // Contient potentiellement un token, le nom de l'utilisateur, etc.
+            data = token 
+            idf = request.UID
+            // Contient potentiellement un token, le nom de l'utilisateur, etc.
         });
     }
 }
 
-
-/*
- {
-  "email"= valeur 
- 
-  "mdp"= valeur 
-
-  "role"= valeur 
- 
- }
-
-
-
-*/

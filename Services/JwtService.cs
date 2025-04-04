@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using APIAPP.Models;
+using LibrarySSMS.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 public class JWTService
 {
@@ -37,6 +37,20 @@ public class JWTService
         return GenerateToken(respHop.UID.ToString(), respHop.Email, "RespoHopital");
     }
 
+    public string GenerateTokenAdmin(Admin admin)
+    {
+        return GenerateToken(admin.UIDKEY.ToString(), admin.Email, "Admin");
+    }
+
+    
+    public string GenerateTokenSuperAdmin(SuperAdmin superadmin)
+    {
+        return GenerateToken(superadmin.UIDKEY.ToString(), superadmin.Email, "SuperAdmin");
+    }
+    
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
     private string GenerateToken(string userId, string email, string role)
     {
         var tokenHandler = new JwtSecurityTokenHandler();

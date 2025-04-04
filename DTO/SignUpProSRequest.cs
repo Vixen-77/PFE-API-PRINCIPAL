@@ -1,4 +1,4 @@
-using APIAPP.Enums;
+using LibrarySSMS.Enums;
 
 namespace APIAPP.DTO{
 
@@ -11,6 +11,6 @@ public class SignUpProSRequest
         public required string PostalCode { get; set; }
         public DateTime DateOfBirth { get; set; }
         public required string PhoneNumber { get; set; } // Optionnel
-        public required RoleManager Role { get; set; }
+         public required RoleManager Role { get; set; }
 }
 }

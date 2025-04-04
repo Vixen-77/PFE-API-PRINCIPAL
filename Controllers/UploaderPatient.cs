@@ -1,31 +1,30 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using APIAPP.Models;
 using APIAPP.Services;
 using Microsoft.AspNetCore.Cors;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using APIAPP.Data;
+using LibrarySSMS;
 
 [Route("api/uploadsPatient")]
 [ApiController]
 public class UploaderPatient : ControllerBase
 {
-    private readonly AuthService _authService;
-    private readonly IEmailService _emailService; 
-    private readonly ILogger<UploaderPatient> _logger;
-    private readonly ApplicationDbContext _context;  
+    private readonly AppDbContext _dbContext;         
+    private readonly IEmailService _emailService;
     private readonly UploadindatabaseService _uploaddatabase;
+    private readonly AuthService _authService;
+    private readonly ILogger<UploaderPatient> _logger;
 
-    public UploaderPatient(IEmailService emailService,UploadindatabaseService uploadindatabase,AuthService authService ,ApplicationDbContext context, ILogger<UploaderPatient> logger)
-    {   
-        _uploaddatabase =uploadindatabase;
+    public UploaderPatient( IEmailService emailService,UploadindatabaseService uploadindatabase,AuthService authService,AppDbContext dbContext,ILogger<UploaderPatient> logger)
+    {
+        _uploaddatabase = uploadindatabase;
         _authService = authService;
         _emailService = emailService;
-        _context = context;
+        _dbContext = dbContext; // Correction ici
         _logger = logger;
     }
 
@@ -52,7 +51,7 @@ public class UploaderPatient : ControllerBase
             }
 
             //TODO: Récupération du patient et de l'email du médecin depuis la base de données
-            var patient = await _context.Patients.FindAsync(userId);
+            var patient = await   _dbContext.Patientss.FindAsync(userId);
             
 
             if (patient == null)
@@ -72,12 +71,22 @@ public class UploaderPatient : ControllerBase
             string rejectionUrl = $"http://localhost:5000/api/uploadsPatient/validate?userId={userId}&approve=false";
 
 
-            // TODO: définir le corp des mail envoyé au medecin et au patient 
+
+
+
+            // TODO: définir le corp des mail envoyé au medecin 
             string emailBody = $@"
-                <h2>Validation du Dossier Patient</h2>
-                <p>Un nouveau patient s'est inscrit. Vous pouvez consulter son dossier et le valider.</p>
-                <p><a href='{validationUrl}'>✅ Confirmer</a> | <a href='{rejectionUrl}'>❌ Refuser</a></p>
+             <h2>Validation du Dossier Patient</h2>
+             <p>Un nouveau patient s'est inscrit. Vous pouvez consulter son dossier et le valider.</p>
+             <p>
+                <a href='{validationUrl}' style='padding: 10px 15px; background-color: green; color: white; text-decoration: none; border-radius: 5px;'>✅ Confirmer</a>
+                 &nbsp;&nbsp;
+                 <a href='{rejectionUrl}' style='padding: 10px 15px; background-color: red; color: white; text-decoration: none; border-radius: 5px;'>❌ Refuser</a>
+             </p>
+             <p>Merci de votre retour.</p>
             ";
+
+            // TODO: définir le corp des mail envoyé au patient
             string emailBodyPatient = $@"
                 <h2>Validation du Dossier Patient</h2>
                 <p>votre docier a était valider avec succes vous pouvez revenir a la platfrome pour se connecter !.</p>
@@ -85,13 +94,35 @@ public class UploaderPatient : ControllerBase
 
             
             // ✉️ Envoi de l'email au médecin
-            bool emailSent = await _emailService.SendEmailAsync(doctorEmail, "Validation du Dossier Patient", emailBody);
+            bool emailSent = await _emailService.SendEmailAsync(doctorEmail, "Validation du Dossier Patient", emailBody,filePath);
+            
             
             if (!emailSent)
             {
-                throw new Exception("Échec de l'envoi de l'e-mail au médecin.");
+                throw new Exception("Échec de l'envoi de l'e-mail au médecin ou pas de validation");
             }
-            else
+
+            return Ok(new { message = " e-mail envoyé au médecin pour validation un" });
+            //le controlleur validatemdecinresponse.cs se chargera de recupe la reponse du medecin 
+        }
+
+
+        //fin bloc try debut bloc catch 
+
+
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de l'inscription et du téléchargement du fichier.");
+            return StatusCode(500, "Erreur interne du serveur");
+        }
+    }
+}  
+
+
+
+
+///// BOUT DE CODE ENLEVER A UPLODE A REMETTRE DANS validatemedecinresponse.cs 
+/*  else////
                 { bool changementvalidationtotrue = _authService.Confirmvalidation(notrepatientmail);
 
                   if(changementvalidationtotrue == true)
@@ -102,12 +133,4 @@ public class UploaderPatient : ControllerBase
                   } 
                  
                   return Ok(new { message = "Patient enregistré, e-mail envoyé au médecin pour validation." });
-                }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erreur lors de l'inscription et du téléchargement du fichier.");
-            return StatusCode(500, "Erreur interne du serveur");
-        }
-    }
-}  
+                }*/

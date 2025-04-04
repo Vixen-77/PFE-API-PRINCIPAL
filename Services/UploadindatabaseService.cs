@@ -1,12 +1,12 @@
-using APIAPP.Models;
-using APIAPP.Data;
+
+using LibrarySSMS;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using APIAPP.Enums;
+using LibrarySSMS.Models;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APIAPP.DTO;
@@ -19,10 +19,10 @@ namespace APIAPP.Services
 {
     public class UploadindatabaseService : IPatientService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
 
-        public UploadindatabaseService(ApplicationDbContext context, IEmailService emailService)
+        public UploadindatabaseService(AppDbContext context, IEmailService emailService)
         {
             _context = context;
             _emailService = emailService;
@@ -30,7 +30,7 @@ namespace APIAPP.Services
 
         public async Task<bool> UpdatePatientFilePath(Guid userId, string filePath)
         {
-            var patient = await _context.Patients.FindAsync(userId);
+            var patient = await _context.Patientss.FindAsync(userId);
             if (patient == null)
             {
                 throw new AuthException("Aucun patient trouvé avec cet ID.", 401);
