@@ -9,7 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using APIAPP.DTO;
-
+using APIAPP.Exceptions;
 [ApiController]
 [Route("api/auth")]
 
@@ -43,40 +43,31 @@ public class PatientControlleurSignIn : ControllerBase
             return BadRequest(new { message = "Rôle invalide." });
         }
 
-          string token = string.Empty;
-
-        // 🔹 Sélection du service selon le rôle
-       
-        if (request.Role == 10) {token = _authService.SignInPatient(request.Email, request.PasswordHash,request.Validation); }
-        // 🔹 Si l'authentification échoue"
-        if (token == null)
+        APIAPP.DTOResponse.SignInResult? result = null;
+        try
+    {
+        if (request.Role == 40)
         {
-            _logger.LogWarning("Échec de l'authentification pour {Email}", request.Email);
-            return Unauthorized(new { message = "Email ou mot de passe incorrect." });
+            result = _authService.SignInPatient(request.Email, request.PasswordHash);
         }
-
-        // 🔹 En cas de succès, on renvoie un JSON vers React
-        _logger.LogInformation("Utilisateur {Email} authentifié avec succès en tant que {Role}.", request.Email, request.Role);
-        return Ok(new
+        else
         {
-            message = "Authentification réussie",
-            role = request.Role,
-            data = token  // Contient potentiellement un token, le nom de l'utilisateur, etc.
-        });
+            return BadRequest(new { message = "Rôle non autorisé pour cette action." });
+        }
+    }
+    catch (AuthException ex)
+    {
+        _logger.LogWarning($"Échec de l'authentification : {ex.Message}");
+        return StatusCode(ex.StatusCode, new { message = ex.Message });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Erreur serveur lors de la connexion.");
+        return StatusCode(500, new { message = "Erreur serveur." });
+    }
+
+    return Ok(result);
+        
     }
 }
 
-
-/*
- {
-  "email"= valeur 
- 
-  "mdp"= valeur 
-
-  "role"= valeur 
- 
- }
-
-
-
-*/

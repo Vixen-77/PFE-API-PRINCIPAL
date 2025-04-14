@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using LibrarySSMS.Models;
 using APIAPP.Services;
 using APIAPP.DTO;
 using LibrarySSMS.Enums;
@@ -9,43 +10,55 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-[Route("api/auth")]
-[ApiController]
-public class PatientControlleurSignUP : ControllerBase
+namespace APIAPP.Controllers
 {
-   private readonly AuthService _authService;
-    private readonly ILogger<PatientControlleurSignUP> _logger;
-    private readonly string _uploadFolder;
-
-    // 🔹 Constructeur avec injection de dépendances
-    public PatientControlleurSignUP(AuthService authService, ILogger<PatientControlleurSignUP> logger)
+    [Route("api/auth")]
+    [ApiController]
+    public class PatientController : ControllerBase
     {
-        _authService = authService;
-        _logger = logger;
-        _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+        private readonly AuthService _authService;
+        private readonly ILogger<PatientController> _logger;
+        private readonly string _uploadFolder;
+
+        public PatientController(AuthService authService, ILogger<PatientController> logger)
+        {
+            _authService = authService;
+            _logger = logger;
+            _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+        }
+
+        [HttpPost("signupWithFile")]
+        [EnableCors("AllowReactApp")]
+        public async Task<IActionResult> SignUpWithFile(
+            [FromForm] SignUpPatientRequest request,
+            [FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Fichier manquant.");
+
+            // Vérifie si l'utilisateur existe déjà
+            var result = _authService.SignUpPatient(request);
+            if (!result)
+                return Conflict("User already exists.");
+
+            // Création du dossier si non existant
+            if (!Directory.Exists(_uploadFolder))
+                Directory.CreateDirectory(_uploadFolder);
+
+            // Enregistre le fichier
+            var filePath = Path.Combine(_uploadFolder, $"{Guid.NewGuid()}_{file.FileName}");
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Enregistre le chemin du fichier lié à l'utilisateur
+            await _authService.SaveFilePathForUser(request.Email, filePath);//FIXME: rajout de la methode dans servicetierce 
+
+            return Ok("Inscription + upload OK !");
+        }
     }
-
-    [HttpPost("signupPatient")]
-    [EnableCors("AllowReactApp")]
-    public IActionResult SignUp([FromBody] SignUpPatientRequest request)
-    {
-      if (request == null)
-    {
-        return BadRequest("Invalid request");
-    }
-
-    bool isRegistered = _authService.SignUpPatient(request);
-
-    if (!isRegistered)
-    {
-        return Conflict("User already exists with this email.");
-    }
-
-    return Ok(new { message = "User registered successfully" });
-   }
 }
-
-
 
 
 

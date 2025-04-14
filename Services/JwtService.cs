@@ -22,19 +22,21 @@ public class JWTService
 
 
 
-        public string GenerateTokenPatient(Patient patient)
+    public string GenerateTokenPatient(Patient patient)
     {
         return GenerateToken(patient.UID.ToString(), patient.Email, "Patient");
     }
+
 
     public string GenerateTokenProS(ProS pros)
     {
         return GenerateToken(pros.UID.ToString(), pros.Email, "ProSante");
     }
 
-    public string GenerateTokenRespHop(RespHop respHop)
+
+    public string GenerateTokenAdminH(AdminH adminh)
     {
-        return GenerateToken(respHop.UID.ToString(), respHop.Email, "RespoHopital");
+        return GenerateToken(adminh.UIDKEY.ToString(), adminh.Email, "AdminHopitale");
     }
 
     public string GenerateTokenAdmin(Admin admin)

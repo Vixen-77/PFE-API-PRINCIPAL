@@ -55,5 +55,36 @@ public class EmailService : IEmailService
             Console.WriteLine($"Erreur lors de l'envoi de l'email : {ex.Message}");
             return false;
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     }
+
+
 }

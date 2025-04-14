@@ -24,6 +24,7 @@ Env.Load("C:\\Users\\ASUS\\Desktop\\PFE3.0\\APIprincipal\\APIAPP\\.env");
 var appUrl = Env.GetString("API_URL"); 
 var reactAppUrl = Env.GetString("REACT_URL");
 
+
 if (string.IsNullOrEmpty(appUrl) || string.IsNullOrEmpty(reactAppUrl))
 {
     throw new Exception("Les variables d'environnement APP_URL et REACT_APP_URL doivent être définies dans .env");
@@ -137,6 +138,7 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();// Doit être avant l'auth
 app.UseAuthorization(); // Bien placé avant MapControllers
 app.MapControllers(); // Plus besoin de UseEndpoints !
+app.UseStaticFiles(); // dans Program.cs
 app.MapGet("/", () => "Hello, ASP.NET Core! Répond parfaitement!");
 
 app.Run();

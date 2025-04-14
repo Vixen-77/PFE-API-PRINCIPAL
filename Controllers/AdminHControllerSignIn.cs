@@ -15,20 +15,20 @@ using APIAPP.Exceptions;
 [ApiController]
 [Route("api/auth")]
 
-public class AdminSignIn : ControllerBase
+public class AdminHSignIn : ControllerBase
 {
     private readonly AuthService _authService;
     private readonly ILogger<AdminSignIn> _logger;
     
 
     // 🔹 Constructeur avec injection de dépendances
-    public AdminSignIn(AuthService authService, ILogger<AdminSignIn> logger)
+    public AdminHSignIn(AuthService authService, ILogger<AdminSignIn> logger)
     {
         _authService = authService;
         _logger = logger;
     }
 
-    [HttpPost("signinAdmin")]
+[HttpPost("signinAdminHopitale")]
 [EnableCors("AllowReactApp")]
 public IActionResult SignIn([FromBody] SignInRequestAdmin request)
 {    
@@ -49,9 +49,9 @@ public IActionResult SignIn([FromBody] SignInRequestAdmin request)
 
     try
     {
-        if (request.Role == 40)
+        if (request.Role == 30)
         {
-            result = _authService.SignInAdmin(request.Email, request.PasswordHash, request.UIDKEY);
+            result = _authService.SignInAdminH(request.Email, request.PasswordHash, request.UIDKEY);
         }
         else
         {

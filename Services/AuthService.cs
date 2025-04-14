@@ -31,6 +31,7 @@ using Azure.Core;
 using LibrarySSMS.Models;
 using System.Linq;
 using System.Threading.Tasks;
+using APIAPP.DTOResponse;
 
 namespace APIAPP.Services
 {
@@ -47,7 +48,7 @@ namespace APIAPP.Services
         } 
 
 
-
+        private string jwttoken = string.Empty;
        
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,87 +56,139 @@ namespace APIAPP.Services
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-        public string SignInPatient(string email, string password,bool validation)
+        public SignInResult SignInPatient(string email, string password)
+      {
+    
+           var patient = _context.Patientss.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
+         if (patient == null || !VerifyPassword(password, patient.PasswordHash, patient.Salt))
+         {
+          throw new AuthException("Email ou mot de passe incorrect.", 401);
+         }
+         if (!patient.IsValidated)
+         {
+        throw new AuthException("Votre compte n'est pas encore validé.", 403);
+         }
+         // 4. Génération du token JWT
+        var token = _jwtService.GenerateTokenPatient(patient);
+        var maskedMail =MasquerEmail(patient.Email);
+
+        return new SignInResult
         {
-            var Patient = _context.Patientss.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
-            if (Patient == null || !VerifyPassword(password, Patient.PasswordHash, Patient.Salt))
-              {
-                var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
-                var jsonString = JsonSerializer.Serialize(myObject); 
-                 throw new  AuthException("il est possible qu' Aucun patient trouvé avec cet email.",401);
-              }
-              
-                    // Générer le token JWT
-                    return _jwtService.GenerateTokenPatient(Patient);
-                    
-        }
+        Token = token,
+        ExpiresAt = DateTime.UtcNow.AddDays(365), // ou selon ta logique de durée
+        UID = patient.UID,
+        Role = 10,
+        Email = maskedMail,
+        Name = patient.Name,
+        LastName = patient.LastName
+        };
+     }
+     
 
-        public string SignInProSante(string email, string password)
+
+
+     public SignInResult SignInProS(string email, string password, bool validation)
+      {
+    
+         var proS = _context.ProSs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
+         if (proS == null || !VerifyPassword(password, proS.PasswordHash, proS.Salt))
+         {
+          throw new AuthException("Email ou mot de passe incorrect.", 401);
+         }
+         if (validation && !proS.IsValidated)
+         {
+        throw new AuthException("Votre compte n'est pas encore validé.", 403);
+         }
+         // 4. Génération du token JWT
+        var token = _jwtService.GenerateTokenProS(proS);
+        var maskedMail =MasquerEmail(proS.Email);
+
+        return new SignInResult
         {
-            var prosante = _context.ProSs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
-            if (prosante == null || !VerifyPassword(password, prosante.PasswordHash, prosante.Salt))
-              {
-                var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
-                var jsonString = JsonSerializer.Serialize(myObject);
-                throw new AuthException("il est possible qu' Aucun profecionel de santé trouvé avec cet email.",401);
-                
-              }
+        Token = token,
+        ExpiresAt = DateTime.UtcNow.AddHours(7), // ou selon ta logique de durée
+        UID = proS.UID,
+        Role = 20,
+        Email = maskedMail,
+        Name = proS.Name,
+        LastName = proS.LastName
+        };
+     }
 
-                // Générer le token JWT
-                return _jwtService.GenerateTokenProS(prosante);
-        }
-
-        public string SignInRespoHopital(string email, string password)
-        {
-            var respHop = _context.RespHops.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
-            if (respHop == null || !VerifyPassword(password, respHop.PasswordHash, respHop.Salt))
-              {
-                var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
-                var jsonString = JsonSerializer.Serialize(myObject);
-                throw new AuthException("il est possible qu' Aucun responsable d'hopitale trouvé avec cet email.",401);
-                
-              }
-
-                // Générer le token JWT
-                return _jwtService.GenerateTokenRespHop(respHop);
-        }
-
-
+     public SignInResultAdmin SignInAdminH(string email, string password, String key)
+      {
+    
+         var adminh = _context.AdminHs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
+         if (adminh == null || !VerifyPassword(password, adminh.PasswordHash, adminh.Salt))
+         {
+          throw new AuthException("Email ou mot de passe incorrect.", 401);
+         }
         
-        public string SignInAdmin(string email, string password , Guid key)
+         // 4. Génération du token JWT
+        var token = _jwtService.GenerateTokenAdminH(adminh); 
+        var maskedMail =MasquerEmail(adminh.Email);
+        return new SignInResultAdmin
         {
-         var admin = _context.Admins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
+        Token = token,
+        ExpiresAt = DateTime.UtcNow.AddHours(2), // ou selon ta logique de durée
+        UID = adminh.UID,
+        Role = 30,
+        Email = maskedMail,
+        FullName = adminh.FullName
+        };
+     }
+     
 
 
-          if (admin == null || !VerifyPassword(password, admin.PasswordHash, admin.Salt))
-              {
-                var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
-                var jsonString = JsonSerializer.Serialize(myObject);
-                throw new AuthException("il est possible qu'Aucun admin trouvé avec cet email.",401);
-                
-              }
+     public SignInResultAdmin SignInAdmin(string email, string password, String key)
+      {
+    
+        var admin = _context.Admins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
 
-                // Générer le token JWT
-                return _jwtService.GenerateTokenAdmin(admin);
-        }
-
-
-        public string SignInSuperAdmin(string email, string password , Guid key)
+         if (admin== null || !VerifyPassword(password, admin.PasswordHash, admin.Salt))
+         {
+          throw new AuthException("Email ou mot de passe incorrect.", 401);
+         }
+        
+         // 4. Génération du token JWT
+        var token = _jwtService.GenerateTokenAdmin(admin); 
+        var maskedMail =MasquerEmail(admin.Email);
+        return new SignInResultAdmin
         {
+        Token = token,
+        ExpiresAt = DateTime.UtcNow.AddHours(2), // ou selon ta logique de durée
+        UID = admin.UID,
+        Role = 40,
+        Email = maskedMail,
+        FullName = admin.FullName
+        };
+     }
+
+     public SignInResultAdmin SignInSuperAdmin(string email, string password, String key)
+      {
+    
          var superadmin = _context.SuperAdmins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
+         if (superadmin == null || !VerifyPassword(password, superadmin.PasswordHash, superadmin.Salt))
+         {
+          throw new AuthException("Email ou mot de passe incorrect.", 401);
+         }
+        
+         // 4. Génération du token JWT
+        var token = _jwtService.GenerateTokenSuperAdmin(superadmin); 
+        var maskedMail =MasquerEmail(superadmin.Email);
+        return new SignInResultAdmin
+        {
+        Token = token,
+        ExpiresAt = DateTime.UtcNow.AddHours(2), // ou selon ta logique de durée
+        UID = superadmin.UID,
+        Role = 50,
+        Email = maskedMail,
+        FullName = superadmin.FullName
+        };
+     }
 
 
-          if (superadmin == null || !VerifyPassword(password, superadmin.PasswordHash, superadmin.Salt))
-              {
-                var myObject = new { singninfailure = "Email ou mot de passe incorrect." };
-                var jsonString = JsonSerializer.Serialize(myObject);
-                throw new AuthException("il est possible qu'Aucun Super admin trouvé avec cet email.",401);
-                
-              }
 
-                // Générer le token JWT
-                return _jwtService.GenerateTokenSuperAdmin(superadmin);
-        }
 
 
 
@@ -154,47 +207,59 @@ namespace APIAPP.Services
             string salt = GenerateSalt();
             string hashedPassword = HashPassword(request.PasswordHash, salt);
 
-            var newPatient = new Patient
 
+            // 1. Création d'un nom de fichier unique
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.File.FileName);
+    
+           // 2. Dossier de destination 
+            string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Datapatientidf");
+            if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath); // Crée le dossier s'il n'existe pas
+
+           // 3. Chemin complet pour sauvegarde
+            string filePath = Path.Combine(folderPath, fileName);
+
+           // 4. Sauvegarde physique du fichier
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+             request.File.CopyTo(stream);
+            }
+
+           // 5. Stockage du chemin relatif ou nom dans la BDD
+           string relativePath = Path.Combine("Identites", fileName); // à stocker dans la DB
+           var newPatient = new Patient
+           
             {   
                 UID= Guid.NewGuid(),
                 Name = request.Name, //1
                 LastName = request.LastName, //1
                 Email = request.Email, //2
                 PasswordHash = hashedPassword,//9
+                Adresse = request.Adress, //2
                 Salt = salt,
                 Role = request.Role,//3
-                IsActive = true,
-                City = request.City,//4
+                IsActive = false,
                 PostalCode = request.PostalCode, //5
-                DateOfBirth = request.DateOfBirth,//6
+                DateofBirth = request.DateOfBirth,//6
                 PhoneNumber = request.PhoneNumber,//7
                 CreatedAt = DateTime.UtcNow,
                 LastLogin = null,
                 AccountStatus = false,
                 TwoFactorEnabled = false,
-                IdProche = Guid.NewGuid(),
                 SubscriptionPlan = false,
                 IsOnline = false,
                 State= UserState.Conducteur, //par defaut mais le user peut le changé ou bien changement par automatisation
-                MedicalRecordPath = string.Empty, // Définir le chemin du dossier médical
-                MailMed = request.Email, // Définir l'email médical //8
                 IsValidated = false,
                 IdphoneP = null,
                 IdSmartwatchP =null,
                 IdSmartwatchNewGenP=null,
                 IdVehiculeOBUP=null,
                 IdCGMP=null,
+                identite = relativePath,
                 Age =request.Age,
                 Gender =request.Gender,  //0 si femme et 1 si homme
                 Weight = request.Weight, 
                 Height = request.Height,
-                Proche = new Proche 
-                {
-                  Name = null,
-                  PhoneNumber = null,
-                  IdProche = Guid.NewGuid() // Assurez-vous que cette propriété est correctement définie
-                }
             };
 
             _context.Patientss.Add(newPatient);
@@ -210,19 +275,57 @@ namespace APIAPP.Services
             string salt = GenerateSalt();
             string hashedPassword = HashPassword(request.PasswordHash, salt);
 
+            // 1. Création de noms de fichiers uniques
+           string fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.File.FileName);
+           string fileNameCertif = Guid.NewGuid().ToString() + Path.GetExtension(request.FileCertif.FileName);
+
+           // 2. Définir les dossiers de destination
+           string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "DataProSidf");
+           string folderPathCertif = Path.Combine(Directory.GetCurrentDirectory(), "DataProSCertif");
+
+           // 3. Créer les dossiers s’ils n’existent pas
+           if (!Directory.Exists(folderPath))
+           Directory.CreateDirectory(folderPath);
+
+           if (!Directory.Exists(folderPathCertif))
+           Directory.CreateDirectory(folderPathCertif);
+
+           // 4. Chemins complets pour sauvegarde
+           string filePath = Path.Combine(folderPath, fileName);
+           string filePathCertif = Path.Combine(folderPathCertif, fileNameCertif);
+
+           // 5. Sauvegarde physique des fichiers
+           using (var stream = new FileStream(filePath, FileMode.Create))
+          {
+          request.File.CopyTo(stream);
+          }
+
+           using (var stream = new FileStream(filePathCertif, FileMode.Create))
+          {
+          request.FileCertif.CopyTo(stream);
+          }
+ 
+          // 6. Chemins relatifs à stocker dans la DB
+       string relativePath = Path.Combine("DataProSidf", fileName);
+       string relativePathCertif = Path.Combine("DataProSCertif", fileNameCertif);
+
+
             var newPro = new ProS
 
             {
               UID =Guid.NewGuid(),
-              FullName = request.FullName, //1
+              Name = request.Name, //1
+              LastName = request.LastName,
               Email = request.Email,//2
               PasswordHash = hashedPassword,//3
               Salt = salt,
               Role = request.Role, // Conversion explicite//4
+              Age = request.Age,
+              Gender = request.gender,
               IsActive = true,
-              City = request.City,//5
+              Adress = request.Adress,//5
               PostalCode = request.PostalCode,//6
-              DateOfBirth = request.DateOfBirth,//7
+              DateofBirth = request.DateOfBirth,//7
               PhoneNumber = request.PhoneNumber,//8
               CreatedAt = DateTime.UtcNow,
               AccountStatus = false,
@@ -233,6 +336,8 @@ namespace APIAPP.Services
               TwoFactorEnabled = false,
               IsOnline = false,
               LastLogin= DateTime.UtcNow,
+              Certif = relativePathCertif,
+              identite= relativePath,           
             };
 
             _context.ProSs.Add(newPro);
@@ -240,45 +345,6 @@ namespace APIAPP.Services
             return true;
         }
 
-        public bool SignUpRespoHopital(SignUpRespHopRequest request)
-        {
-            if (_context.RespHops.Any(r => r.Email == request.Email))
-                return false;
-
-            string salt = GenerateSalt();
-            string hashedPassword = HashPassword(request.PasswordHash, salt);
-
-           var newRespo = new RespHop
-
-        {    
-             UID = Guid.NewGuid(),
-             FullName = request.FullName, //1
-             Email = request.Email, //2
-             PasswordHash = hashedPassword,//3
-             Salt = salt,
-             Role = request.Role, // 4Conversion explicite
-             IsActive = true,
-             isAmbulanceReady = false, // Définir la valeur appropriée
-            // IDCentre = Guid.NewGuid(),//FIXME: a RAJOUTER DANS LA Librérie
-             City = request.City,//5
-             PostalCode = request.PostalCode,
-             DateOfBirth =request.DateOfBirth,//6
-             PhoneNumber = request.PhoneNumber,//7
-             AccountStatus = false,// Assurez-vous que AccountStatus est défini
-             SubscriptionPlan = true, 
-             IsOnline = false,
-             TwoFactorEnabled =false,
-             LastLogin =DateTime.UtcNow,
-             CreatedAt =DateTime.UtcNow,
-             IdVehiculeOBUSV=null// Définir la valeur appropriée
-
-        };
-
-            _context.RespHops.Add(newRespo);                                                                           
-            _context.SaveChanges();
-            return true;
-            
-        }
 
         // 3️⃣ Déconnexion
         public void Logout(string token)
@@ -318,6 +384,7 @@ namespace APIAPP.Services
 /////////////////////////////////////////////////TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO://///////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      // Génération du sel
+
         private string GenerateSalt()
         {
             byte[] saltBytes = new byte[16];
@@ -327,6 +394,7 @@ namespace APIAPP.Services
             }
             return Convert.ToBase64String(saltBytes);
         }
+
 
         // Hachage du mot de passe avec SHA-256 + sel
         private string HashPassword(string password, string salt)
@@ -344,8 +412,90 @@ namespace APIAPP.Services
         {
             return HashPassword(enteredPassword, salt) == storedHash;
         }
-    }
+
+           //maskage de l'email
+           private string MasquerEmail(string email)
+        {
+            var parts = email.Split('@');
+            if (parts[0].Length <= 2) return "***@" + parts[1];
+
+            return parts[0].Substring(0, 2) + new string('*', 3) + "@" + parts[1];
+        } 
+     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
