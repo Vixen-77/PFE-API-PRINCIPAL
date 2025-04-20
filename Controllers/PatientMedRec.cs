@@ -1,17 +1,18 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http;
-using LibrarySSMS;
-using LibrarySSMS.Models;
-using LibrarySSMS.Enums;
-using APIAPP.Services;
+/* */
+//using System;
+//using System.Threading.Tasks;
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.AspNetCore.Cors;
+//using Microsoft.AspNetCore.Http;
+//using LibrarySSMS;
+//using LibrarySSMS.Models;
+//using LibrarySSMS.Enums;
+//using APIAPP.Services;
 
-[Route("api/mail")]
+/*[Route("api/mail")]
 [ApiController]
-public class Controlleurtest2 : ControllerBase
-{
+public class Controlleurtest2 : ControllerBase*/
+/*{
     private readonly EmailService _emailService;
     private readonly UploaderPatient _methodePatientService;
     private readonly AppDbContext _context;
@@ -82,13 +83,5 @@ public class Controlleurtest2 : ControllerBase
 
         return Content("❌ Dossier refusé.");
     }
-}
-
-
-
-
-
-
-
-}
+}*/
 

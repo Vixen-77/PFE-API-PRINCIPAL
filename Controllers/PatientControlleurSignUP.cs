@@ -45,7 +45,7 @@ namespace APIAPP.Controllers
 
             // Persister la notification Gmail-like
             var admin = _context.Admins.FirstOrDefault();
-            if (admin != null)
+            if (admin!= null)  // FIXME:puis rendre fals car les compte admin ne sont pas encore cree 
             {
                 var notif = new NotificationAdmin
 
@@ -67,7 +67,7 @@ namespace APIAPP.Controllers
 
 
 
-        [HttpGet("notifications")]
+        [HttpGet("notificationsPatient")]
         [EnableCors("AllowReactApp")]
         public IActionResult GetNotifications([FromBody] Guid adminUid)
         {
@@ -91,7 +91,7 @@ namespace APIAPP.Controllers
 
 
 
-        [HttpPost("markAsRead")]
+        [HttpPost("markAsReadPatient")]
         [EnableCors("AllowReactApp")]
         public async Task<IActionResult> MarkAsRead([FromBody] Guid AdminUID)
        {

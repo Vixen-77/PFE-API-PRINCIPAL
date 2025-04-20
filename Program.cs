@@ -44,7 +44,6 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddScoped<AuthService>(); 
 builder.Services.AddScoped<IEmailService, EmailService>(); // 🛠️ Enregistrer IEmailService
 builder.Services.AddScoped<EmailService>();
-builder.Services.AddScoped<UploadindatabaseService>(); // Maintenant, il peut utiliser IEmailService
 builder.Services.AddSingleton<NotificationStore>();  // Enregistrement du NotificationStore
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
@@ -139,7 +138,7 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();// Doit être avant l'auth
 app.UseAuthorization(); // Bien placé avant MapControllers
 app.MapControllers(); // Plus besoin de UseEndpoints !
-app.UseStaticFiles(); // dans Program.cs
+//app.UseStaticFiles(); // dans Program.cs useless
 app.MapGet("/", () => "Hello, ASP.NET Core! Répond parfaitement!");
 
 app.Run();

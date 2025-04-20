@@ -34,7 +34,7 @@ namespace APIAPP.Controllers
             _context = context;
         }
 
-        [HttpPost("signupWithFile")]
+        [HttpPost("signupWithFileProS")]
         [EnableCors("AllowReactApp")]
         public async Task<IActionResult> SignUpWithFile([FromForm] SignUpProSRequest request)
         {
@@ -70,7 +70,7 @@ namespace APIAPP.Controllers
 
 
 
-        [HttpGet("notifications")]
+        [HttpGet("notificationsProS")]
         [EnableCors("AllowReactApp")]
         public IActionResult GetNotifications([FromBody] Guid adminUid)
         {
@@ -94,7 +94,7 @@ namespace APIAPP.Controllers
 
 
 
-        [HttpPost("markAsRead")]
+        [HttpPost("markAsReadProS")]
         [EnableCors("AllowReactApp")]
         public async Task<IActionResult> MarkAsRead([FromBody] Guid AdminUID)
        {

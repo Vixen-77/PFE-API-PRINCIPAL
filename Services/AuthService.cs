@@ -253,7 +253,7 @@ namespace APIAPP.Services
                 SubscriptionPlan = false,
                 IsOnline = false,
                 State= UserState.Conducteur, //par defaut mais le user peut le changé ou bien changement par automatisation
-                IsValidated = false,
+                IsValidated = true,// FIXME: a remttre a false apres que la creation de la page admin
                 IdphoneP = null,
                 IdSmartwatchP =null,
                 IdSmartwatchNewGenP=null,
@@ -345,7 +345,8 @@ namespace APIAPP.Services
               IsOnline = false,
               LastLogin= DateTime.UtcNow,
               Certif = relativePathCertif,
-              identite= relativePath,           
+              identite= relativePath, 
+              IsValidated = true,//FIXME: a remttre a false apres que la creation de la page admin         
             };
 
             _context.ProSs.Add(newPro);
