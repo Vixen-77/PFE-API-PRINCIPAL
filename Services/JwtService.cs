@@ -36,18 +36,18 @@ public class JWTService
 
     public string GenerateTokenAdminH(AdminH adminh)
     {
-        return GenerateToken(adminh.UIDKEY.ToString(), adminh.Email, "AdminHopitale");
+        return GenerateToken(adminh.UIDKEY, adminh.Email, "AdminHopitale");
     }
 
     public string GenerateTokenAdmin(Admin admin)
     {
-        return GenerateToken(admin.UIDKEY.ToString(), admin.Email, "Admin");
+        return GenerateToken(admin.UIDKEY, admin.Email, "Admin");
     }
 
     
     public string GenerateTokenSuperAdmin(SuperAdmin superadmin)
     {
-        return GenerateToken(superadmin.UIDKEY.ToString(), superadmin.Email, "SuperAdmin");
+        return GenerateToken(superadmin.UIDKEY, superadmin.Email, "SuperAdmin");
     }
     
 
