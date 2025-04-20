@@ -1,72 +1,87 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using LibrarySSMS.Models;
 using LibrarySSMS;
+using LibrarySSMS.Enums;
+using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace APIAPP.Services
 {
     public class UploaderPatient
     {
-        private readonly AppDbContext _dbContext;
+    
         private readonly IEmailService _emailService;
-        private readonly UploadindatabaseService _uploaddatabase;
+        private readonly AppDbContext _context;
         private readonly ILogger<UploaderPatient> _logger;
+        private readonly AuthService _authService;
 
         public UploaderPatient(
             IEmailService emailService,
-            UploadindatabaseService uploadindatabase,
             AuthService authService,
             AppDbContext dbContext,
             ILogger<UploaderPatient> logger)
         {
-            _uploaddatabase = uploadindatabase;
             _emailService = emailService;
-            _dbContext = dbContext;
+            _context = dbContext;
             _logger = logger;
+            _authService = authService;
         }
 
-        public async Task<bool> SignupAndUpload(IFormFile file, Guid userId)
-        {
-            if (file == null || file.Length == 0)
-            {
-                _logger.LogWarning("Fichier non fourni ou vide.");
-                return false;
-            }
 
-            try
-            {
-                // Chemin relatif au projet
-                var folderName = "Datapatientidf";
-                var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-
-                if (!Directory.Exists(uploadFolder))
-                    Directory.CreateDirectory(uploadFolder);
-
-                // Chemin complet sur le disque
-                var filePath = Path.Combine(uploadFolder, file.FileName);
-
-                // Chemin à stocker dans la base (relatif)
-                var dbPath = Path.Combine(folderName, file.FileName);
-
-                // Sauvegarde dans la base
-                await _uploaddatabase.UpdatePatientFilePath(userId, dbPath);
-
-                // Sauvegarde du fichier
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                _logger.LogInformation($"Fichier {file.FileName} uploadé avec succès pour l'utilisateur {userId}.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erreur lors de l'upload du fichier.");
-                return false;
-            }
-        }
+public async Task<string> UploadandEmail(IFormFile file, Guid patientUid, string mailMed)
+{
+    if (file == null || file.Length == 0)
+    {
+        _logger.LogWarning("Fichier non fourni ou vide.");
+        return "";
     }
+
+    // 1. Création d'un nom de fichier unique
+    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+    // 2. Dossier de destination
+    string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Data");
+    if (!Directory.Exists(folderPath))
+        Directory.CreateDirectory(folderPath); // Crée le dossier s'il n'existe pas
+
+    // 3. Chemin complet pour sauvegarde
+    string filePathMed = Path.Combine(folderPath, fileName);
+
+    // 4. Sauvegarde physique du fichier
+    using (var stream = new FileStream(filePathMed, FileMode.Create))
+    {
+        await file.CopyToAsync(stream);
+    }
+
+    // 5. Stockage du chemin relatif ou nom dans la BDD
+    string relativePathmed = Path.Combine("Data", fileName); // à stocker dans la DB
+    var patient = await _context.Patientss.FirstOrDefaultAsync(p => p.UID == patientUid);
+    if (patient == null)
+    {
+        _logger.LogWarning($"Patient avec UID {patientUid} non trouvé.");
+        return ""; // Retourner faux si le patient n'est pas trouvé
+    }
+
+    // 6. Création de l'enregistrement médical
+    MedRec newMedRec = new MedRec
+    {
+        UIDMedRec = Guid.NewGuid(),
+        FilePath = relativePathmed,
+        State = MedRecState.Pawding, // Exemple de statut
+        CreatedAt = DateTime.UtcNow,
+        MailMed = mailMed,
+        PatientUID = patientUid,
+        Patient = patient,
+    };
+
+    // 7. Enregistrer dans la base de données
+    _context.MedRecs.Add(newMedRec);
+    await _context.SaveChangesAsync();
+
+    return relativePathmed;
 }
+    }}

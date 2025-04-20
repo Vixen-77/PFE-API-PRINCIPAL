@@ -14,20 +14,19 @@ using APIAPP.DTOResponse;
 [ApiController]
 [Route("api/auth")]
 
-public class PatientControlleurSignIn : ControllerBase
+public class ProSControlleurSignIn : ControllerBase
 {
     private readonly AuthService _authService;
     private readonly ILogger<PatientControlleurSignIn> _logger;
     
 
-    // 🔹 Constructeur avec injection de dépendances
-    public PatientControlleurSignIn(AuthService authService, ILogger<PatientControlleurSignIn> logger)
+    public ProSControlleurSignIn(AuthService authService, ILogger<PatientControlleurSignIn> logger)
     {
         _authService = authService;
         _logger = logger;
     }
 
-    [HttpPost("signinPatient")]
+    [HttpPost("signinProS")]
     [EnableCors("AllowReactApp")]
     public IActionResult SignIn([FromBody] SignInRequest request)
     {    
@@ -44,10 +43,10 @@ public class PatientControlleurSignIn : ControllerBase
             return BadRequest(new { message = "Rôle invalide." });
         }
 
-        Task <SignInResultt?> result ;
+       Task <SignInResultt?> result ;
         try
     {
-        if (request.Role == 10)
+        if (request.Role == 20)
         {
             result = _authService.SignInPatient(request.Email, request.PasswordHash);
         }

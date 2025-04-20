@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 public class Controlleurtest : ControllerBase
 {   
     [HttpPost("Emailsendertest")]
-    public async Task<IActionResult> Test()
+    public async Task<IActionResult> TestGmail()
     {
         var smtpClient = new SmtpClient("smtp.gmail.com")
         {

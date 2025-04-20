@@ -45,7 +45,7 @@ public IActionResult SignIn([FromBody] SignInRequestAdmin request)
     }
 
     // 🔹 Initialisation de la variable result
-    SignInResultAdmin? result = null;
+    Task <SignInResultAdmin?> result ;
 
     try
     {

@@ -56,7 +56,7 @@ namespace APIAPP.Services
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-        public SignInResult SignInPatient(string email, string password)
+        public async Task<SignInResultt?> SignInPatient(string email, string password)
       {
     
            var patient = _context.Patientss.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
@@ -71,23 +71,23 @@ namespace APIAPP.Services
          // 4. Génération du token JWT
         var token = _jwtService.GenerateTokenPatient(patient);
         var maskedMail =MasquerEmail(patient.Email);
-
-        return new SignInResult
-        {
-        Token = token,
-        ExpiresAt = DateTime.UtcNow.AddDays(365), // ou selon ta logique de durée
-        UID = patient.UID,
-        Role = 10,
-        Email = maskedMail,
-        Name = patient.Name,
-        LastName = patient.LastName
-        };
+        await Task.Delay(0);
+            return new SignInResultt
+           {
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddDays(365), // ou selon ta logique de durée
+            UID = patient.UID,
+            Role = 10,
+            Email = maskedMail,
+            Name = patient.Name,
+            LastName = patient.LastName
+           };
      }
      
 
 
 
-     public SignInResult SignInProS(string email, string password, bool validation)
+     public async Task<SignInResultt?> SignInProS(string email, string password)
       {
     
          var proS = _context.ProSs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
@@ -95,30 +95,31 @@ namespace APIAPP.Services
          {
           throw new AuthException("Email ou mot de passe incorrect.", 401);
          }
-         if (validation && !proS.IsValidated)
+         if (!proS.IsValidated)
          {
         throw new AuthException("Votre compte n'est pas encore validé.", 403);
          }
          // 4. Génération du token JWT
         var token = _jwtService.GenerateTokenProS(proS);
         var maskedMail =MasquerEmail(proS.Email);
-
-        return new SignInResult
-        {
-        Token = token,
-        ExpiresAt = DateTime.UtcNow.AddHours(7), // ou selon ta logique de durée
-        UID = proS.UID,
-        Role = 20,
-        Email = maskedMail,
-        Name = proS.Name,
-        LastName = proS.LastName
-        };
+        await Task.Delay(0);
+        
+            return new SignInResultt
+           {
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddDays(7), // ou selon ta logique de durée
+            UID = proS.UID,
+            Role = 20,
+            Email = maskedMail,
+            Name = proS.Name,
+            LastName = proS.LastName
+           };
      }
 
-     public SignInResultAdmin SignInAdminH(string email, string password, String key)
+     public async Task <SignInResultAdmin?> SignInAdminH(string email, string password, string key)
       {
     
-         var adminh = _context.AdminHs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower());
+         var adminh = _context.AdminHs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
          if (adminh == null || !VerifyPassword(password, adminh.PasswordHash, adminh.Salt))
          {
           throw new AuthException("Email ou mot de passe incorrect.", 401);
@@ -127,6 +128,7 @@ namespace APIAPP.Services
          // 4. Génération du token JWT
         var token = _jwtService.GenerateTokenAdminH(adminh); 
         var maskedMail =MasquerEmail(adminh.Email);
+        await Task.Delay(0);
         return new SignInResultAdmin
         {
         Token = token,
@@ -140,7 +142,7 @@ namespace APIAPP.Services
      
 
 
-     public SignInResultAdmin SignInAdmin(string email, string password, String key)
+     public async Task<SignInResultAdmin?> SignInAdmin(string email, string password, string key)
       {
     
         var admin = _context.Admins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
@@ -153,6 +155,7 @@ namespace APIAPP.Services
          // 4. Génération du token JWT
         var token = _jwtService.GenerateTokenAdmin(admin); 
         var maskedMail =MasquerEmail(admin.Email);
+        await Task.Delay(0);
         return new SignInResultAdmin
         {
         Token = token,
@@ -164,7 +167,7 @@ namespace APIAPP.Services
         };
      }
 
-     public SignInResultAdmin SignInSuperAdmin(string email, string password, String key)
+     public async Task<SignInResultAdmin?> SignInSuperAdmin(string email, string password, String key)
       {
     
          var superadmin = _context.SuperAdmins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
@@ -176,6 +179,7 @@ namespace APIAPP.Services
          // 4. Génération du token JWT
         var token = _jwtService.GenerateTokenSuperAdmin(superadmin); 
         var maskedMail =MasquerEmail(superadmin.Email);
+        await Task.Delay(0);
         return new SignInResultAdmin
         {
         Token = token,
@@ -199,17 +203,17 @@ namespace APIAPP.Services
 
 
 
-        public bool SignUpPatient(SignUpPatientRequest request) // FIXME:
+        public async Task<SignUpResult> SignUpPatient(SignUpPatientRequest request) // FIXME:
         {
             if (_context.Patientss.Any(p => p.Email.ToLower()== request.Email.ToLower()))
-                return false;
+                return new SignUpResult { PatientUID = null, filename = null };
 
             string salt = GenerateSalt();
             string hashedPassword = HashPassword(request.PasswordHash, salt);
 
 
             // 1. Création d'un nom de fichier unique
-            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.File.FileName);
+           string fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.File.FileName);
     
            // 2. Dossier de destination 
             string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Datapatientidf");
@@ -226,7 +230,7 @@ namespace APIAPP.Services
             }
 
            // 5. Stockage du chemin relatif ou nom dans la BDD
-           string relativePath = Path.Combine("Identites", fileName); // à stocker dans la DB
+           string relativePath = Path.Combine("Datapatientidf", fileName); // à stocker dans la DB
            var newPatient = new Patient
            
             {   
@@ -263,14 +267,18 @@ namespace APIAPP.Services
             };
 
             _context.Patientss.Add(newPatient);
-            _context.SaveChanges();
-            return true;
+            await _context.SaveChangesAsync();
+            return new SignUpResult
+            {
+                PatientUID = newPatient.UID, // Renvoie l'UID du patient inscrit
+                filename = fileName // Renvoie le nom du fichier sauvegardé
+            };
         }
 
-        public bool SignUpProSante(SignUpProSRequest request)
+        public async Task<SignUpResultProS> SignUpProSante(SignUpProSRequest request)
         {
             if (_context.ProSs.Any(p => p.Email == request.Email))
-                return false;
+                return new SignUpResultProS { ProSUID = null, filename = null, filename2 = null };;
 
             string salt = GenerateSalt();
             string hashedPassword = HashPassword(request.PasswordHash, salt);
@@ -330,7 +338,7 @@ namespace APIAPP.Services
               CreatedAt = DateTime.UtcNow,
               AccountStatus = false,
               SubscriptionPlan = true,
-              IsAvailable = true,
+              IsAvailable = Availibility.DispoForEmergencysOnly,
               AcceptRequest = true,
               CheckedSchedule = true,
               TwoFactorEnabled = false,
@@ -341,11 +349,19 @@ namespace APIAPP.Services
             };
 
             _context.ProSs.Add(newPro);
-            _context.SaveChanges();
-            return true;
+            await _context.SaveChangesAsync();
+            return new SignUpResultProS
+            {
+                ProSUID = newPro.UID, // Renvoie l'UID du ProS inscrit
+                filename = fileName, // Renvoie le nom du fichier sauvegardé
+                filename2 = fileNameCertif // Renvoie le nom du fichier de certificat sauvegardé
+            };
+
         }
 
 
+
+        
         // 3️⃣ Déconnexion
         public void Logout(string token)
         {
@@ -359,17 +375,6 @@ namespace APIAPP.Services
 
      //TODO:code de la methode pour mettre a jour is validated a true apres que le medecin a valider le docier 
 
-     public bool Confirmvalidation(string email)
-     {
-         var patient = _context.Patientss.FirstOrDefault(p => p.Email == email);
-         if (patient != null)
-         {
-             patient.IsValidated = true;
-             _context.SaveChanges();
-             return true; // Return true if validation is successful
-         }
-         return false; // Return false if no patient is found
-     }
 
 
 

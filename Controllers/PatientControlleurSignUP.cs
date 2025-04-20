@@ -1,14 +1,16 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using APIAPP.DTO;
 using LibrarySSMS.Models;
 using APIAPP.Services;
-using APIAPP.DTO;
-using LibrarySSMS.Enums;
-using Microsoft.AspNetCore.Cors;
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using LibrarySSMS;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace APIAPP.Controllers
 {
@@ -18,60 +20,115 @@ namespace APIAPP.Controllers
     {
         private readonly AuthService _authService;
         private readonly ILogger<PatientController> _logger;
-        private readonly string _uploadFolder;
+        private readonly AppDbContext _context;
 
-        public PatientController(AuthService authService, ILogger<PatientController> logger)
+        public PatientController(
+            AuthService authService,
+            ILogger<PatientController> logger,
+            AppDbContext context)
         {
             _authService = authService;
             _logger = logger;
-            _uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+            _context = context;
         }
 
         [HttpPost("signupWithFile")]
         [EnableCors("AllowReactApp")]
-        public async Task<IActionResult> SignUpWithFile(
-            [FromForm] SignUpPatientRequest request,
-            [FromForm] IFormFile file)
+        public async Task<IActionResult> SignUpWithFile([FromForm] SignUpPatientRequest request)
         {
-            if (file == null || file.Length == 0)
+            if (request.File == null || request.File.Length == 0)
                 return BadRequest("Fichier manquant.");
 
-            // Vérifie si l'utilisateur existe déjà
-            var result = _authService.SignUpPatient(request);
-            if (!result)
-                return Conflict("User already exists.");
+            SignUpResult result = await _authService.SignUpPatient(request);
+            if (result == null)
+                return Conflict("Cet utilisateur existe déjà.");
 
-            // Création du dossier si non existant
-            if (!Directory.Exists(_uploadFolder))
-                Directory.CreateDirectory(_uploadFolder);
-
-            // Enregistre le fichier
-            var filePath = Path.Combine(_uploadFolder, $"{Guid.NewGuid()}_{file.FileName}");
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            // Persister la notification Gmail-like
+            var admin = _context.Admins.FirstOrDefault();
+            if (admin != null)
             {
-                await file.CopyToAsync(stream);
+                var notif = new NotificationAdmin
+
+                {   
+                    AdminUID = admin.UID,
+                    PatientUID = result.PatientUID,
+                    CreatedAt = DateTime.UtcNow,
+                    Message = $"Nouveau patient inscrit : {request.Email}",
+                };
+                _context.Notificationadmins.Add(notif);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Notif créée pour admin {admin.UID}: {notif.Message}");
             }
 
-            // Enregistre le chemin du fichier lié à l'utilisateur
-            await _authService.SaveFilePathForUser(request.Email, filePath);//FIXME: rajout de la methode dans servicetierce 
-
-            return Ok("Inscription + upload OK !");
+            return Ok(new { Message = "Inscription réussie.", result.PatientUID });
         }
-    }
-}
 
 
 
-//////////////////////////////////////////////////////////////////////////////
-/*public IActionResult GetJson()
-    {
-        var response = new
+
+
+        [HttpGet("notifications")]
+        [EnableCors("AllowReactApp")]
+        public IActionResult GetNotifications([FromBody] Guid adminUid)
         {
-            Message = "Hello, React! This is your JSON",
-            Timestamp = DateTime.UtcNow,
-            State = "connexion etablie avec succes"
-        };
-        
-        return Ok(response);
-    }*/
-   
+            var list = _context.Notificationadmins
+                .Where(n => n.AdminUID == adminUid)
+                .OrderByDescending(n => n.CreatedAt)
+                .Select(n => new
+                {
+                    n.Id,
+                    n.PatientUID,
+                    n.Message,
+                    n.CreatedAt,
+                    n.IsRead
+                })
+                .ToList();
+            return Ok(list);
+        }
+
+
+
+
+
+
+        [HttpPost("markAsRead")]
+        [EnableCors("AllowReactApp")]
+        public async Task<IActionResult> MarkAsRead([FromBody] Guid AdminUID)
+       {
+        var notif = await _context.Notificationadmins.FindAsync(AdminUID); // ← on cherche la notif par son ID
+        if (notif == null)
+           return NotFound();
+
+         notif.IsRead = true;
+         await _context.SaveChangesAsync();
+
+         return Ok();
+        }
+
+
+
+
+
+       [HttpGet("patientFile")]
+       [EnableCors("AllowReactApp")]
+       public IActionResult GetPatientFile([FromBody] Guid patientUid)
+      {
+         // 1. Recherche du patient avec ce UID
+        var patient = _context.Patientss.FirstOrDefault(p => p.UID == patientUid);
+        if (patient == null)
+        return NotFound("Patient introuvable.");
+
+         // 2. Construction du chemin complet vers le fichier du patient
+         var fileName = Path.GetFileName(patient.identite); 
+         var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "Datapatientidf", fileName);
+
+         // 3. Vérification de l'existence du fichier
+        if (!System.IO.File.Exists(fullPath))
+        return NotFound("Le fichier n'existe pas sur le serveur.");
+
+         // 4. Lecture du fichier et retour en réponse
+         var fileBytes = System.IO.File.ReadAllBytes(fullPath);
+        return File(fileBytes, "application/octet-stream", fileName); // ← ici on précise le type MIME
+      }
+   }
+}

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace APIAPP.DTOResponse
 {
-    public class SignInResult
+    public class SignInResultt
     {
         public required string Token { get; set; }   
         public DateTime ExpiresAt { get; set; }
