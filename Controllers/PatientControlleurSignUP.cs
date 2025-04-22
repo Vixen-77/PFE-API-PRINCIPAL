@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using APIAPP.DTO;
+using APIAPP.DTO.SignUpPatientRawRequest;
 using LibrarySSMS.Models;
 using APIAPP.Services;
 using LibrarySSMS;
@@ -34,15 +35,17 @@ namespace APIAPP.Controllers
 
         [HttpPost("signupWithFile")]
         [EnableCors("AllowReactApp")]
-        public async Task<IActionResult> SignUpWithFile([FromForm] SignUpPatientRequest request)
+        public async Task<IActionResult> SignUpWithFile([FromForm] SignUpPatientRawRequest request)
         {
             if (request.File == null || request.File.Length == 0)
                 return BadRequest("Fichier manquant.");
 
-            SignUpResult result = await _authService.SignUpPatient(request);
+            SignUpPatientRequest typedRequest = new ConversionService().ToTyped(request);
+            SignUpResult result = await _authService.SignUpPatient(typedRequest);
             if (result == null)
                 return Conflict("Cet utilisateur existe déjà.");
 
+            
             // Persister la notification Gmail-like
             var admin = _context.Admins.FirstOrDefault();
             if (admin!= null)  // FIXME:puis rendre fals car les compte admin ne sont pas encore cree 
@@ -59,14 +62,14 @@ namespace APIAPP.Controllers
                 await _context.SaveChangesAsync();
                 _logger.LogInformation($"Notif créée pour admin {admin.UID}: {notif.Message}");
             }
-
+            
             return Ok(new { Message = "Inscription réussie.", result.PatientUID });
         }
 
 
 
 
-
+    
         [HttpGet("notificationsPatient")]
         [EnableCors("AllowReactApp")]
         public IActionResult GetNotifications([FromBody] Guid adminUid)
@@ -87,10 +90,10 @@ namespace APIAPP.Controllers
         }
 
 
+    
 
 
-
-
+    
         [HttpPost("markAsReadPatient")]
         [EnableCors("AllowReactApp")]
         public async Task<IActionResult> MarkAsRead([FromBody] Guid AdminUID)

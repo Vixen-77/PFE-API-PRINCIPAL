@@ -44,7 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Library-SSMS\Library-SSMS\Library-SSMS.csproj" />
-  </ItemGroup>
+    <ProjectReference Include="C:\Users\HP\Documents\L3\PFE\libSSMS\LibrarySQLserveurExpress\Library-SSMS.csproj" />  </ItemGroup>
 
 </Project>

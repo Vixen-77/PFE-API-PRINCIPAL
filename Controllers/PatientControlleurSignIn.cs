@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using APIAPP.DTO;
 using APIAPP.Exceptions;
 using APIAPP.DTOResponse;
+using APIAPP.DTO.SignInRaw;
 [ApiController]
 [Route("api/auth")]
 
@@ -29,7 +30,7 @@ public class PatientControlleurSignIn : ControllerBase
 
     [HttpPost("signinPatient")]
     [EnableCors("AllowReactApp")]
-    public IActionResult SignIn([FromBody] SignInRequest request)
+    public IActionResult SignIn([FromForm] SignInRaw request)
     {    
         if (request == null)
         {
@@ -37,19 +38,14 @@ public class PatientControlleurSignIn : ControllerBase
             return BadRequest(new { message = "Données invalides." });
         }
 
-        // Vérification que le rôle reçu est bien défini dans RoleManager
-        if (!Enum.IsDefined(typeof(RoleManager), request.Role))
-        {
-            _logger.LogWarning($"Rôle invalide reçu : {request.Role}");
-            return BadRequest(new { message = "Rôle invalide." });
-        }
-
+        SignInRequest typedRequest = new ConversionService().ToRaw(request);
         Task <SignInResultt?> result ;
+
         try
     {
-        if (request.Role == 10)
+        if (typedRequest.Role == 10)
         {
-            result = _authService.SignInPatient(request.Email, request.PasswordHash);
+            result = _authService.SignInPatient(typedRequest.Email, typedRequest.PasswordHash);
         }
         else
         {

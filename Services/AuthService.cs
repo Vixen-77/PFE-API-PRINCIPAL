@@ -241,7 +241,7 @@ namespace APIAPP.Services
                 PasswordHash = hashedPassword,//9
                 Adresse = request.Adress, //2
                 Salt = salt,
-                Role = request.Role,//3
+                Role = RoleManager.Patient,//3
                 IsActive = false,
                 PostalCode = request.PostalCode, //5
                 DateofBirth = request.DateOfBirth,//6

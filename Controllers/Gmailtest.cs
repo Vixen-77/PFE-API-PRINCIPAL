@@ -36,8 +36,8 @@ public class Controlleurtest : ControllerBase
             Body = emailBody,
             IsBodyHtml = false
         };
-           var path ="C:\\Users\\ASUS\\Desktop\\PFE3.0\\APIprincipal\\APIAPP\\Datapatient\\cat.jpg";
-           mailMessage.To.Add("raniaderriche02@gmail.com"); //mettre le mail de tu sait qui lol
+           var path ="C:\\Users\\HP\\Pictures\\Saved Pictures\\kiruagun.jpg";
+           mailMessage.To.Add("belabbasmelinda444@gmail.com"); //mettre le mail de tu sait qui lol
             var attachment = new Attachment(path);
             mailMessage.Attachments.Add(attachment);
      

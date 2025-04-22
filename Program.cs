@@ -20,7 +20,7 @@ using Swashbuckle.AspNetCore.Filters;
 var builder = WebApplication.CreateBuilder(args);
 
 // Charger les variables depuis .env
-Env.Load("C:\\Users\\ASUS\\Desktop\\PFE3.0\\APIprincipal\\APIAPP\\.env");
+Env.Load("C:\\Users\\HP\\Documents\\L3\\PFE\\PFE-API-PRINCIPAL\\.env");
 var appUrl = Env.GetString("API_URL"); 
 var reactAppUrl = Env.GetString("REACT_URL");
 
@@ -35,8 +35,7 @@ builder.WebHost.UseUrls(appUrl);
 
 // Ajout des services avant builder.Build()
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\Users\ASUS\Desktop\PFE3.0\APIprincipal\APIAPP"))
-    .SetApplicationName("MonApplication");
+    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\Users\HP\Documents\L3\PFE\PFE-API-PRINCIPAL"))    .SetApplicationName("MonApplication");
 
 
     //ingnoré le warning du chiffrement 
@@ -85,11 +84,12 @@ builder.Services.AddSingleton<JWTService>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-       policy => policy.WithOrigins(reactAppUrl)
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials());
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://192.168.1.102:8081")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
          var app = builder.Build(); // ICI on fige le service !
