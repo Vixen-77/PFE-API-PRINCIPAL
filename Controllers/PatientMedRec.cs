@@ -1,18 +1,19 @@
-/* */
-//using System;
-//using System.Threading.Tasks;
-//using Microsoft.AspNetCore.Mvc;
-//using Microsoft.AspNetCore.Cors;
-//using Microsoft.AspNetCore.Http;
-//using LibrarySSMS;
-//using LibrarySSMS.Models;
-//using LibrarySSMS.Enums;
-//using APIAPP.Services;
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
+using LibrarySSMS;
+using LibrarySSMS.Models;
+using LibrarySSMS.Enums;
+using APIAPP.Services;
+using APIAPP.DTO;
+using Microsoft.EntityFrameworkCore;
 
-/*[Route("api/mail")]
+[Route("api/validationmail")]
 [ApiController]
-public class Controlleurtest2 : ControllerBase*/
-/*{
+public class Controlleurtest2 : ControllerBase
+{
     private readonly EmailService _emailService;
     private readonly UploaderPatient _methodePatientService;
     private readonly AppDbContext _context;
@@ -29,59 +30,130 @@ public class Controlleurtest2 : ControllerBase*/
 
     [HttpPost("PatientUploder")]
     [EnableCors("AllowReactApp")]
-    public async Task<IActionResult> UploadPatient([FromForm] IFormFile file, Guid patientid, string MailduMedcin)
+    public async Task<IActionResult> UploadPatient([FromForm] MedRecRaw request)
     {
-        if (file == null || file.Length == 0)
+        if (request.file == null || request.file.Length == 0)
             return BadRequest("Fichier non fourni ou vide.");
-          Guid patientGlobal=patientid;
         // Appel au service pour uploader le fichier et envoyer l'email
-        string thepathishere = await _methodePatientService.UploadandEmail(file, patientid, MailduMedcin);
+        pathandID? thepathishere = await _methodePatientService.UploadandEmail(request.file, Guid.Parse(request.ID), request.MailMedecin,request.Description, request.Title);
 
-        if (string.IsNullOrEmpty(thepathishere))
-            return BadRequest(500);
+        if (thepathishere == null)
+            return BadRequest("Erreur lors de l'upload du fichier.");
         else {
-            
-        {
-          string subject = "Nouveau dossier médical reçu";
-          string body = $"Bonjour,\n\nVous avez reçu un nouveau dossier médical concernant un patient.\n\nVeuillez vérifier si vous êtes bien à l'origine de cette prescription.\n\nMerci de votre vigilance.";
+        {  
 
-            var isSent = await _emailService.SendEmailAsync(MailduMedcin, subject, body, thepathishere);
+          string baseUrl = "http://192.168.1.102:5001";
+          string subject = "Nouveau dossier médical reçu: "+" "+request.Title;
+          string dossierId = thepathishere.ID.ToString();
+          string body = $@"
+           Bonjour,
+
+           Vous avez reçu un nouveau dossier médical concernant un patient.
+
+           Veuillez vérifier si vous êtes bien à l'origine de cette prescription.{"\n"} Description:"
+           + $@" "+ request.Description +
+          $@"   [✔️ Valider]({baseUrl}/api/validationmail/accept?dossierId={dossierId})  
+                [❌ Refuser]({baseUrl}/api/validationmail/refuse?dossierId={dossierId})
+
+          Merci de votre vigilance.";
+            var isSent = await _emailService.SendEmailAsync(request.MailMedecin, subject, body, thepathishere.path.ToString());
             if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email.");
         }
         }
 
        var response = new
-        {
-            Message = "votre Docier Medical a était envoyé avec succes a votre medecin",
-            Timestamp = DateTime.UtcNow,
-        };
+            {
+                Message = "Dossier médical validé avec succès.",
+                idfdossier = thepathishere.ID,
+            };
+            return Ok(response);
         
-        return Ok(response);
+        }
+    
+
+
+
+
+
+
+
+
+
+
+
+        [HttpGet("accept")]
+        [EnableCors("AllowReactApp")]
+        public async Task<IActionResult> Accept(string dossierId)
+        {
+            var Toguiddoc = Guid.Parse(dossierId);
+            var MedRec = await _context.MedRecs.FirstOrDefaultAsync(p => p.UIDMedRec == Toguiddoc);
+            if (MedRec == null)
+            {
+                return NotFound("Dossier médical non trouvé.");
+            }
+            MedRec.State = MedRecState.valid; // Mettre à jour l'état du dossier médical
+            await _context.SaveChangesAsync();
+            
+    // 2. Trouver le patient correspondant
+           var patient = await _context.Patientss.FirstOrDefaultAsync(p => p.UID == MedRec.PatientUID);
+
+         if (patient == null)
+        {
+        return NotFound("Patient non trouvé.");
+        }
+
+
+     // 4. Tu peux ici utiliser patient.Email si besoin
+            string patientEmail = patient.Email;
+            string subject = "Dossier médical validé";
+            string body = $@"Votre dossier médical a été validé avec succès ! 
+            Nous garderons une trace de votre santé pour intervenir rapidement en cas d'urgence. Merci.";
+
+
+            var isSent = await _emailService.SendEmailAsyncValidation(patientEmail, subject, body);
+            if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email.");
+    
+            return Ok("Dossier validé. Merci !");
+        }
+
+
+
+
+
+
+
+       [HttpGet("refuse")]
+       [EnableCors("AllowReactApp")]
+
+        public  async Task<IActionResult> Refuse(string dossierId)
+        {
+        var Toguiddoc = Guid.Parse(dossierId);
+        var MedRec= await _context.MedRecs.FirstOrDefaultAsync(p => p.UIDMedRec == Toguiddoc);
+         if (MedRec == null)
+            {
+                return NotFound("Dossier médical non trouvé.");
+            }
+            MedRec.State = MedRecState.unvalid; // Mettre à jour l'état du dossier médical
+            await _context.SaveChangesAsync();
+            // 2. Trouver le patient correspondant
+           var patient = await _context.Patientss.FirstOrDefaultAsync(p => p.UID == MedRec.PatientUID);
+
+         if (patient == null)
+        {
+        return NotFound("Patient non trouvé.");
+        }
+     // 4. Tu peux ici utiliser patient.Email si besoin
+            string patientEmail = patient.Email;
+            Guid MedRecUid = MedRec.UIDMedRec;
+            string subject = "Dossier médical Refusé";
+            string body = $@"Votre dossier médical a été refusé. 
+            Veuillez contacter votre médecin pour plus de détails. Merci pour votre compréhension.";
+
+            var isSent = await _emailService.SendEmailAsyncValidation(patientEmail, subject, body);
+            if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email.");
+    
+            return Ok("Dossier Refusé. Merci !");
+
+        }
+
     }
-
-   [HttpPost("PatientReccup")]
-   [EnableCors("AllowReactApp")]
-    public async Task<IActionResult> ValidateMedRec(int validation)
-    {
-        var medRec = await _context.MedRecs.FindAsync(id);
-        if (medRec == null) return NotFound("Dossier introuvable");
-
-        medRec.State = MedRecState.Pawding;
-        await _context.SaveChangesAsync();
-
-        return Content("✅ Dossier validé avec succès !");
-    }
-
-    [HttpGet("refuse")]
-    public async Task<IActionResult> RefuseMedRec(Guid id)
-    {
-        var medRec = await _context.MedRecs.FindAsync(id);
-        if (medRec == null) return NotFound("Dossier introuvable");
-
-        medRec.State = MedRecState.Refused;
-        await _context.SaveChangesAsync();
-
-        return Content("❌ Dossier refusé.");
-    }
-}*/
-

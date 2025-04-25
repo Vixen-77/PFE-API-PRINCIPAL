@@ -44,6 +44,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); // 🛠️ Enregistrer IEmailService
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddSingleton<NotificationStore>();  // Enregistrement du NotificationStore
+builder.Services.AddScoped<GlobalService>();
+builder.Services.AddScoped<UploaderPatient>();          
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();

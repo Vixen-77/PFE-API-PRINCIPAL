@@ -80,7 +80,12 @@ namespace APIAPP.Services
             Role = 10,
             Email = maskedMail,
             Name = patient.Name,
-            LastName = patient.LastName
+            LastName = patient.LastName,
+            height = patient.Height.ToString(),
+            weight = patient.Weight.ToString(),
+            phonenumber = patient.PhoneNumber,
+            postalcode = patient.PostalCode.ToString(),
+            address = patient.Adresse
            };
      }
      
@@ -112,7 +117,12 @@ namespace APIAPP.Services
             Role = 20,
             Email = maskedMail,
             Name = proS.Name,
-            LastName = proS.LastName
+            LastName = proS.LastName,
+            height = "",
+            weight = "",
+            phonenumber = proS.PhoneNumber,
+            postalcode = proS.PostalCode.ToString(),
+            address = proS.Adress
            };
      }
 
@@ -203,10 +213,11 @@ namespace APIAPP.Services
 
 
 
-        public async Task<SignUpResult> SignUpPatient(SignUpPatientRequest request) // FIXME:
+        public async Task<SignUpResult?> SignUpPatient(SignUpPatientRequest request) // FIXME:
         {
             if (_context.Patientss.Any(p => p.Email.ToLower()== request.Email.ToLower()))
-                return new SignUpResult { PatientUID = null, filename = null };
+                return null;
+                
 
             string salt = GenerateSalt();
             string hashedPassword = HashPassword(request.PasswordHash, salt);
@@ -327,7 +338,7 @@ namespace APIAPP.Services
               Email = request.Email,//2
               PasswordHash = hashedPassword,//3
               Salt = salt,
-              Role = request.Role, // Conversion explicite//4
+              Role = RoleManager.ProfSanté, // Conversion explicite//4
               Age = request.Age,
               Gender = request.gender,
               IsActive = true,
@@ -403,7 +414,7 @@ namespace APIAPP.Services
 
 
         // Hachage du mot de passe avec SHA-256 + sel
-        private string HashPassword(string password, string salt)
+        internal string HashPassword(string password, string salt)
         {
             using (var sha256 = SHA256.Create())
             {
@@ -414,7 +425,7 @@ namespace APIAPP.Services
         }
 
         // Vérification du mot de passe
-        private bool VerifyPassword(string enteredPassword, string storedHash, string salt)
+        internal bool VerifyPassword(string enteredPassword, string storedHash, string salt)
         {
             return HashPassword(enteredPassword, salt) == storedHash;
         }

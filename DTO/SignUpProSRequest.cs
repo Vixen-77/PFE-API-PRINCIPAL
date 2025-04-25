@@ -16,7 +16,7 @@ public class SignUpProSRequest
         public required string PhoneNumber { get; set; } // Optionnel
         public required IFormFile File { get; set; } 
         public required IFormFile FileCertif { get; set; } 
-        public required RoleManager Role { get; set; }
+        public required int Role { get; set; }
 
 }
 }

@@ -8,6 +8,7 @@ using LibrarySSMS.Enums;
 using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using APIAPP.DTO;
 
 namespace APIAPP.Services
 {
@@ -32,16 +33,16 @@ namespace APIAPP.Services
         }
 
 
-public async Task<string> UploadandEmail(IFormFile file, Guid patientUid, string mailMed)
+public async Task<pathandID?> UploadandEmail(IFormFile file, Guid patientUid, string mailMed, string description, string title)
 {
     if (file == null || file.Length == 0)
     {
         _logger.LogWarning("Fichier non fourni ou vide.");
-        return "";
+        return null;
     }
 
     // 1. Création d'un nom de fichier unique
-    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+    string fileName = patientUid.ToString() + Path.GetExtension(file.FileName);
 
     // 2. Dossier de destination
     string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Data");
@@ -63,7 +64,7 @@ public async Task<string> UploadandEmail(IFormFile file, Guid patientUid, string
     if (patient == null)
     {
         _logger.LogWarning($"Patient avec UID {patientUid} non trouvé.");
-        return ""; // Retourner faux si le patient n'est pas trouvé
+        return null; // Retourner faux si le patient n'est pas trouvé
     }
 
     // 6. Création de l'enregistrement médical
@@ -71,17 +72,22 @@ public async Task<string> UploadandEmail(IFormFile file, Guid patientUid, string
     {
         UIDMedRec = Guid.NewGuid(),
         FilePath = relativePathmed,
-        State = MedRecState.Pawding, // Exemple de statut
+        State = MedRecState.Pending, // Exemple de statut
         CreatedAt = DateTime.UtcNow,
         MailMed = mailMed,
         PatientUID = patientUid,
         Patient = patient,
+        Title = title,
+        Description = description,
     };
 
     // 7. Enregistrer dans la base de données
     _context.MedRecs.Add(newMedRec);
     await _context.SaveChangesAsync();
 
-    return relativePathmed;
+    return new pathandID{
+       ID = newMedRec.UIDMedRec,
+       path = relativePathmed
+    };
 }
     }}

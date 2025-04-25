@@ -21,42 +21,49 @@ public class EmailService : IEmailService
     }
 
     public async Task<bool> SendEmailAsync(string toEmail, string subject, string body, string filePath)
+{
+    try
     {
-        try
+        var smtpClient = new SmtpClient(_smtpServer)
         {
-            var smtpClient = new SmtpClient(_smtpServer)
-            {
-                Port = _smtpPort,
-                Credentials = new NetworkCredential(_smtpUser, _smtpPass),
-                EnableSsl = true
-            };
+            Port = _smtpPort,
+            Credentials = new NetworkCredential(_smtpUser, _smtpPass),
+            EnableSsl = true
+        };
 
-            var mailMessage = new MailMessage
-            {
-                From = new MailAddress(_smtpUser),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
+        var mailMessage = new MailMessage
+        {
+            From = new MailAddress(_smtpUser),
+            Subject = subject,
+            Body = body,
+            IsBodyHtml = true
+        };
 
-            mailMessage.To.Add(toEmail);
+        mailMessage.To.Add(toEmail);
 
-            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+        if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+        {
+            string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+
+            using (var attachment = new Attachment(absolutePath))
             {
-                var attachment = new Attachment(filePath);
                 mailMessage.Attachments.Add(attachment);
+                await smtpClient.SendMailAsync(mailMessage);
             }
-
-            await smtpClient.SendMailAsync(mailMessage);
-            return true;
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Erreur lors de l'envoi de l'email : {ex.Message}");
-            return false;
+            await smtpClient.SendMailAsync(mailMessage);
         }
-    }
 
+        return true;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erreur lors de l'envoi de l'email : {ex.Message}");
+        return false;
+    }
+}
 
        public async Task<bool> SendEmailAsyncValidation(string toEmail, string subject, string body)
         {
@@ -88,4 +95,37 @@ public class EmailService : IEmailService
         }
         
        }
+       
+
+         public async Task<bool> SendCodeEmail(string toEmail, string subject, string body, string code)
+        {
+            try
+            {
+            var smtpClient = new SmtpClient(_smtpServer)
+            {
+                Port = _smtpPort,
+                Credentials = new NetworkCredential(_smtpUser, _smtpPass),
+                EnableSsl = true
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_smtpUser),
+                Subject = subject,
+                Body = body + code,
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(toEmail);
+             await smtpClient.SendMailAsync(mailMessage);
+            return true;
+            }
+           catch (Exception ex)
+           {
+            Console.WriteLine($"Erreur lors de l'envoi de l'email : {ex.Message}");
+            return false;   
+        }
+        
+       }
+
 }

@@ -13,6 +13,11 @@ namespace APIAPP.DTOResponse
         public required string Email { get; set; }
         public required string Name {get;set;}
         public required string LastName {get;set;}
+        public required string height {get;set;}
+        public required string weight {get;set;}
+        public required string phonenumber {get;set;}
+        public required string postalcode {get;set;}
+        public required string address {get;set;}
     }
 }
 //redjahyousra6@gmail.com

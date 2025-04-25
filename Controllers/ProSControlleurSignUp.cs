@@ -13,6 +13,7 @@ using APIAPP.Services;
 using LibrarySSMS;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NanoidDotNet;
+using APIAPP.DTO.SignUpProSRawRequest;
 
 namespace APIAPP.Controllers
 {
@@ -36,13 +37,13 @@ namespace APIAPP.Controllers
 
         [HttpPost("signupWithFileProS")]
         [EnableCors("AllowReactApp")]
-        public async Task<IActionResult> SignUpWithFile([FromForm] SignUpProSRequest request)
+        public async Task<IActionResult> SignUpWithFile([FromForm] SignUpProSRawRequest request)
         {
             if (request.File == null || request.File.Length == 0 ||request.FileCertif == null || request.FileCertif.Length == 0)
                 return BadRequest("soit le fichier identité est manquant ou bien celui de certification.");
 
-
-            SignUpResultProS resultP = await _authService.SignUpProSante(request);
+            SignUpProSRequest typedRequest = new ConversionService().ToTypedProS(request);
+            SignUpResultProS resultP = await _authService.SignUpProSante(typedRequest);
             if (resultP == null)
                 return Conflict("Cet utilisateur existe déjà.");
 
@@ -54,7 +55,7 @@ namespace APIAPP.Controllers
 
                 {   Id = int.Parse(Nanoid.Generate(size: 6).Substring(0, 9)),// Ensure the string is converted to an integer
                     AdminUID = admin.UID,
-                    PatientUID = resultP.ProSUID,
+                    userUID = resultP.ProSUID,
                     CreatedAt = DateTime.UtcNow,
                     Message = $"Nouveau patient inscrit : {request.Email}",
                 };
@@ -80,7 +81,7 @@ namespace APIAPP.Controllers
                 .Select(n => new
                 {
                     n.Id,
-                    n.PatientUID,
+                    n.userUID,
                     n.Message,
                     n.CreatedAt,
                     n.IsRead

@@ -41,7 +41,7 @@ namespace APIAPP.Controllers
                 return BadRequest("Fichier manquant.");
 
             SignUpPatientRequest typedRequest = new ConversionService().ToTyped(request);
-            SignUpResult result = await _authService.SignUpPatient(typedRequest);
+            SignUpResult? result = await _authService.SignUpPatient(typedRequest);
             if (result == null)
                 return Conflict("Cet utilisateur existe déjà.");
 
@@ -54,7 +54,7 @@ namespace APIAPP.Controllers
 
                 {   
                     AdminUID = admin.UID,
-                    PatientUID = result.PatientUID,
+                    userUID = result.PatientUID,
                     CreatedAt = DateTime.UtcNow,
                     Message = $"Nouveau patient inscrit : {request.Email}",
                 };
@@ -80,7 +80,7 @@ namespace APIAPP.Controllers
                 .Select(n => new
                 {
                     n.Id,
-                    n.PatientUID,
+                    n.userUID,
                     n.Message,
                     n.CreatedAt,
                     n.IsRead

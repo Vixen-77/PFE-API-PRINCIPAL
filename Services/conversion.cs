@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using APIAPP.DTOResponse;
 using APIAPP.DTO.SignUpPatientRawRequest;
 using APIAPP.DTO.SignInRaw;
+using APIAPP.DTO.SignUpProSRawRequest;
 
 namespace APIAPP.Services
 {
@@ -51,6 +52,25 @@ namespace APIAPP.Services
             Email = data.Email,
             PasswordHash = data.PasswordHash,
             Role = int.TryParse(data.Role, out var role) ? role : 0
+        };
+    }
+
+    public SignUpProSRequest ToTypedProS(SignUpProSRawRequest data){
+        return new SignUpProSRequest
+        {
+        Email = data.Email,
+        PasswordHash = data.PasswordHash,
+        Name = data.Name,
+        LastName = data.LastName,
+        Adress = data.Adress,
+        PostalCode = data.PostalCode,
+        PhoneNumber = data.PhoneNumber,
+        Role = 10,
+        Age = int.TryParse(data.Age, out var age) ? age : 0,
+        gender = data.gender == "1",
+        DateOfBirth = DateTime.TryParse(data.DateOfBirth, out var dob) ? dob : DateTime.MinValue,
+        File = data.File,
+        FileCertif = data.FileCertif,
         };
     }
 
