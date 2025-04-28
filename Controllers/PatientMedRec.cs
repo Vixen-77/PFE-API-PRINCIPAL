@@ -42,20 +42,32 @@ public class Controlleurtest2 : ControllerBase
         else {
         {  
 
-          string baseUrl = "http://192.168.1.102:5001";
+          string baseUrl = "http://192.168.158.10:5001";
           string subject = "Nouveau dossier médical reçu: "+" "+request.Title;
           string dossierId = thepathishere.ID.ToString();
           string body = $@"
-           Bonjour,
+    <html>
+      <body>
+        <p>Bonjour,</p>
+        <p>Vous avez reçu un nouveau dossier médical concernant un patient.</p>
+        <p><strong>Description:</strong> {request.Description}</p>
+        <p>
+          <a href='{baseUrl}/api/validationmail/accept?dossierId={dossierId}' 
+             style='padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px;'>
+             ✔️ Valider
+          </a>
+        </p>
+        <p>
+          <a href='{baseUrl}/api/validationmail/refuse?dossierId={dossierId}' 
+             style='padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px;'>
+             ❌ Refuser
+          </a>
+        </p>
+        <p>Merci de votre vigilance.</p>
+      </body>
+    </html>
+";
 
-           Vous avez reçu un nouveau dossier médical concernant un patient.
-
-           Veuillez vérifier si vous êtes bien à l'origine de cette prescription.{"\n"} Description:"
-           + $@" "+ request.Description +
-          $@"   [✔️ Valider]({baseUrl}/api/validationmail/accept?dossierId={dossierId})  
-                [❌ Refuser]({baseUrl}/api/validationmail/refuse?dossierId={dossierId})
-
-          Merci de votre vigilance.";
             var isSent = await _emailService.SendEmailAsync(request.MailMedecin, subject, body, thepathishere.path.ToString());
             if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email.");
         }
@@ -91,6 +103,10 @@ public class Controlleurtest2 : ControllerBase
             {
                 return NotFound("Dossier médical non trouvé.");
             }
+            if (MedRec.State!= MedRecState.Pending){
+                return BadRequest("Le dossier médical a déjà été traité.");
+            }
+            
             MedRec.State = MedRecState.valid; // Mettre à jour l'état du dossier médical
             await _context.SaveChangesAsync();
             
@@ -133,6 +149,9 @@ public class Controlleurtest2 : ControllerBase
             {
                 return NotFound("Dossier médical non trouvé.");
             }
+            if (MedRec.State!= MedRecState.Pending){
+                return BadRequest("Le dossier médical a déjà été traité.");
+            }
             MedRec.State = MedRecState.unvalid; // Mettre à jour l'état du dossier médical
             await _context.SaveChangesAsync();
             // 2. Trouver le patient correspondant
@@ -155,5 +174,62 @@ public class Controlleurtest2 : ControllerBase
             return Ok("Dossier Refusé. Merci !");
 
         }
+
+
+
+        [HttpPost("recupListMedRec")]
+        [EnableCors("AllowReactApp")]
+        public async Task<IActionResult> RecupeMedrec([FromBody]string patient)
+        {
+        if (!Guid.TryParse(patient, out Guid patientId))
+            {
+            return BadRequest("ID de patient invalide.");
+            }
+
+        var medRecs = await _context.MedRecs
+            .Where(n => n.PatientUID == patientId)
+            .OrderByDescending(n => n.CreatedAt)
+            .Select(n => new
+            {
+            n.UIDMedRec,
+            n.PatientUID,
+            filePath = "http://192.168.158.10:5001/" + n.FilePath.Replace("\\", "/"),
+            n.CreatedAt,
+            n.State,
+            n.MailMed,
+            n.Title,
+            n.Description,
+            })
+            .ToListAsync();
+
+         if (medRecs == null || !medRecs.Any())
+            {
+            return Ok("Aucun document médical trouvé pour ce patient.");
+        }
+
+        return Ok(medRecs);
+    }
+
+    [HttpPost("deleteListMedRec")]
+    [EnableCors("AllowReactApp")]
+    public async Task<IActionResult> DelectionMedRec([FromBody] DeleteMedRecRequest request)
+{
+    var idfPatient = Guid.Parse(request.Patient);
+    var idfDossier = Guid.Parse(request.IdDossier);
+
+    var medicalREC = await _context.MedRecs
+        .FirstOrDefaultAsync(p => p.PatientUID == idfPatient && p.UIDMedRec == idfDossier);
+
+    if (medicalREC == null)
+    {
+        return NotFound("Aucun dossier médical correspondant n'a été retrouvé.");
+    }
+
+    _context.MedRecs.Remove(medicalREC);
+    await _context.SaveChangesAsync();
+
+    return Ok("Dossier médical supprimé avec succès.");
+}
+
 
     }

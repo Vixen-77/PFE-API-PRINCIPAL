@@ -16,6 +16,8 @@ using System;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.Extensions;
 using Swashbuckle.AspNetCore.Filters;
+using Microsoft.Extensions.FileProviders;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,7 +90,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://192.168.1.102:8081")
+        policy.WithOrigins("http://192.168.158.10:8081")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -141,6 +143,16 @@ app.UseAuthentication();// Doit être avant l'auth
 app.UseAuthorization(); // Bien placé avant MapControllers
 app.MapControllers(); // Plus besoin de UseEndpoints !
 //app.UseStaticFiles(); // dans Program.cs useless
+
+
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Data")),
+    RequestPath = "/Data"
+});
+
 app.MapGet("/", () => "Hello, ASP.NET Core! Répond parfaitement!");
 
 app.Run();

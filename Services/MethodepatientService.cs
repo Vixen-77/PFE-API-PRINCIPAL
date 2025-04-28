@@ -42,7 +42,8 @@ public async Task<pathandID?> UploadandEmail(IFormFile file, Guid patientUid, st
     }
 
     // 1. Création d'un nom de fichier unique
-    string fileName = patientUid.ToString() + Path.GetExtension(file.FileName);
+    var nouveauID = Guid.NewGuid(); 
+    string fileName = nouveauID.ToString() + Path.GetExtension(file.FileName);
 
     // 2. Dossier de destination
     string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Data");
@@ -90,4 +91,65 @@ public async Task<pathandID?> UploadandEmail(IFormFile file, Guid patientUid, st
        path = relativePathmed
     };
 }
+    
+    public async Task<string> Addproche(string name, Guid patientUid, string PhoneNumber)
+    {
+        var patient = await _context.Patientss.FirstOrDefaultAsync(p => p.UID == patientUid);
+        if (patient == null)
+        {
+            _logger.LogWarning($"Patient avec UID {patientUid} non trouvé.");
+            return "false"; // Retourner faux si le patient n'est pas trouvé
+        }
+
+        var proche = new Proche
+        {
+            IdProche = "Proche" + Guid.NewGuid(), //FIXME: a voir avec melinda
+            Name = name,
+            PhoneNumber = PhoneNumber,
+            PatientUID = patientUid,
+            Patient = patient,
+        };
+
+        _context.Proches.Add(proche);
+        await _context.SaveChangesAsync();
+
+        return proche.IdProche;
+
+    }
+    
+    
+    public async Task<bool> Deleteproche( Guid patientUid, string procheUid)
+    {
+        var proche = await _context.Proches.FirstOrDefaultAsync(p => p.PatientUID == patientUid && p.IdProche == procheUid);
+        if (proche == null)
+        {
+            _logger.LogWarning($"vous n'avez pas d'amis miskin");
+            return false; // Retourner faux si le patient n'est pas trouvé
+        }
+
+        _context.Proches.Remove(proche);
+        await _context.SaveChangesAsync();
+        return true;
+    
+    }
+
+    public async Task<bool> Modifproche(string procheUid, Guid idpatient ,string name, string PhoneNumber)
+    {
+        var proche = await _context.Proches.FirstOrDefaultAsync(p => p.PatientUID == idpatient && p.IdProche == procheUid); 
+
+        if (proche == null)
+        {
+            _logger.LogWarning($"vous n'avez pas d'amis miskin");
+            return false; // Retourner faux si le patient n'est pas trouvé
+        }
+
+        proche.Name = name;
+        proche.PhoneNumber = PhoneNumber;
+       
+        _context.Proches.Update(proche);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    
     }}
