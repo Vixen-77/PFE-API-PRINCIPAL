@@ -90,7 +90,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://192.168.158.10:8081")
+        policy.WithOrigins("http://192.168.1.102:8081")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -143,14 +143,38 @@ app.UseAuthentication();// Doit être avant l'auth
 app.UseAuthorization(); // Bien placé avant MapControllers
 app.MapControllers(); // Plus besoin de UseEndpoints !
 //app.UseStaticFiles(); // dans Program.cs useless
+app.UseDeveloperExceptionPage();
 
 
-app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "Data")),
     RequestPath = "/Data"
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "ProfilePicPatient")),
+    RequestPath = "/ProfilePicPatient"
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Datapatientidf")),
+    RequestPath = "/Datapatientidf"
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "DataProSCertif")),
+    RequestPath = "/DataProSCertif"
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "DataProSidf")),
+    RequestPath = "/ProfilePicPatient"
 });
 
 app.MapGet("/", () => "Hello, ASP.NET Core! Répond parfaitement!");

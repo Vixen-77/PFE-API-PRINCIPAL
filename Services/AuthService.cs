@@ -72,10 +72,18 @@ namespace APIAPP.Services
         var token = _jwtService.GenerateTokenPatient(patient);
         var maskedMail =MasquerEmail(patient.Email);
         await Task.Delay(0);
+        var pdptest = patient.ProfilPic;
+        if (pdptest != null){
+            pdptest="http://192.168.1.102:5001/" + patient.ProfilPic?.ToString().Replace("\\","/");
+        }
+        else{ 
+            pdptest="";
+            }
+
             return new SignInResultt
            {
             Token = token,
-            ExpiresAt = DateTime.UtcNow.AddDays(365), // ou selon ta logique de durée
+            ExpiresAt = DateTime.UtcNow.AddDays(365), 
             UID = patient.UID,
             Role = 10,
             Email = maskedMail,
@@ -85,11 +93,13 @@ namespace APIAPP.Services
             weight = patient.Weight.ToString(),
             phonenumber = patient.PhoneNumber,
             postalcode = patient.PostalCode.ToString(),
-            address = patient.Adresse
-           };
-     }
+            address = patient.Adresse,
+            birthdate = patient.DateofBirth.ToString(),
+            pdp = pdptest,
+        };
+      }
      
-
+      
 
 
      public async Task<SignInResultt?> SignInProS(string email, string password)
@@ -108,7 +118,14 @@ namespace APIAPP.Services
         var token = _jwtService.GenerateTokenProS(proS);
         var maskedMail =MasquerEmail(proS.Email);
         await Task.Delay(0);
-        
+        var pdptest = proS.ProfilPic;
+        if (pdptest != null){
+            pdptest="http://192.168.1.102:5001/" + proS.ProfilPic?.ToString().Replace("\\","/");
+        }
+        else{ 
+            pdptest="";
+            }
+
             return new SignInResultt
            {
             Token = token,
@@ -122,7 +139,9 @@ namespace APIAPP.Services
             weight = "",
             phonenumber = proS.PhoneNumber,
             postalcode = proS.PostalCode.ToString(),
-            address = proS.Adress
+            address = proS.Adress,
+            birthdate = proS.DateofBirth.ToString(),
+            pdp = pdptest,
            };
      }
 

@@ -18,7 +18,8 @@ namespace APIAPP.DTOResponse
         public required string phonenumber {get;set;}
         public required string postalcode {get;set;}
         public required string address {get;set;}
+        public required string birthdate {get;set;}
+
+        public required string pdp {get;set;}
     }
 }
-//redjahyousra6@gmail.com
-//red********@gmail.com 
