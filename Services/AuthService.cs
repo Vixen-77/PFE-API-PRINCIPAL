@@ -86,7 +86,7 @@ namespace APIAPP.Services
             ExpiresAt = DateTime.UtcNow.AddDays(365), 
             UID = patient.UID,
             Role = 10,
-            Email = maskedMail,
+            Email = patient.Email,
             Name = patient.Name,
             LastName = patient.LastName,
             height = patient.Height.ToString(),
@@ -132,7 +132,7 @@ namespace APIAPP.Services
             ExpiresAt = DateTime.UtcNow.AddDays(7), // ou selon ta logique de durée
             UID = proS.UID,
             Role = 20,
-            Email = maskedMail,
+            Email = proS.Email,
             Name = proS.Name,
             LastName = proS.LastName,
             height = "",
@@ -164,7 +164,7 @@ namespace APIAPP.Services
         ExpiresAt = DateTime.UtcNow.AddHours(2), // ou selon ta logique de durée
         UID = adminh.UID,
         Role = 30,
-        Email = maskedMail,
+        Email = adminh.Email,
         FullName = adminh.FullName
         };
      }
@@ -191,7 +191,7 @@ namespace APIAPP.Services
         ExpiresAt = DateTime.UtcNow.AddHours(2), // ou selon ta logique de durée
         UID = admin.UID,
         Role = 40,
-        Email = maskedMail,
+        Email = admin.Email,
         FullName = admin.FullName
         };
      }
@@ -215,7 +215,7 @@ namespace APIAPP.Services
         ExpiresAt = DateTime.UtcNow.AddHours(2), // ou selon ta logique de durée
         UID = superadmin.UID,
         Role = 50,
-        Email = maskedMail,
+        Email = superadmin.Email,
         FullName = superadmin.FullName
         };
      }
@@ -421,7 +421,7 @@ namespace APIAPP.Services
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      // Génération du sel
 
-        private string GenerateSalt()
+        internal string GenerateSalt()
         {
             byte[] saltBytes = new byte[16];
             using (var rng = RandomNumberGenerator.Create())
