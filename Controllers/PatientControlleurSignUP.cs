@@ -19,6 +19,7 @@ namespace APIAPP.Controllers
     [ApiController]
     public class PatientController : ControllerBase
     {
+        private readonly EmailService _emailService;
         private readonly AuthService _authService;
         private readonly ILogger<PatientController> _logger;
         private readonly AppDbContext _context;
@@ -26,11 +27,13 @@ namespace APIAPP.Controllers
         public PatientController(
             AuthService authService,
             ILogger<PatientController> logger,
-            AppDbContext context)
+            AppDbContext context,
+            EmailService emailService)
         {
             _authService = authService;
             _logger = logger;
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpPost("signupWithFile")]
@@ -44,7 +47,30 @@ namespace APIAPP.Controllers
             SignUpResult? result = await _authService.SignUpPatient(typedRequest);
             if (result == null)
                 return Conflict("Cet utilisateur existe déjà.");
-
+        var id= result.PatientUID.ToString();
+        if(result.email==null){
+            return BadRequest("Email manquant.");
+        }
+        var role = "10";
+            // Envoi d'un email de confirmation
+          string baseUrl = "http://192.168.1.102:5001";  
+          string subject = "Please Confirm Your New Email Address";
+          string body = $@"
+    <html>
+      <body>
+        <p>Bonjour,</p>
+        <p>We received a request to update the email address associated with your account on E-Mergency.</p>
+        <p>To confirm that this new email belongs to you and complete the update, please click the link below:</p>
+        <br>
+        <a href={baseUrl}/api/changemail/validate?id={id}&role={role}>Confirm New Mail</a>
+        <br><br>
+        <p>Thanks for being part of E-Mergency!</p>
+        <p>Best regards,</p>
+        <p>The E-Mergency Team</p>
+      </body>
+    </html>";
+    var isSent= await _emailService.SendEmailAsyncValidation(result.email, subject, body);
+    if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email de confirmation.");
             
             // Persister la notification Gmail-like
             var admin = _context.Admins.FirstOrDefault();

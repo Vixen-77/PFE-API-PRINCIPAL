@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 public class EmailService : IEmailService
 {
+    
     private readonly string _smtpServer;
     private readonly int _smtpPort;
     private readonly string _smtpUser;
@@ -118,11 +119,11 @@ public class EmailService : IEmailService
 
             mailMessage.To.Add(toEmail);
              await smtpClient.SendMailAsync(mailMessage);
-            return true;
+                return true;
             }
            catch (Exception ex)
            {
-            Console.WriteLine($"Erreur lors de l'envoi de l'email : {ex.Message}");
+            Console.WriteLine($"Erreur lors de l'envoi de l'email : {ex.Message}+{ex.Source}");
             return false;   
         }
         

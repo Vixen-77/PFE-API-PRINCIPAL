@@ -21,6 +21,7 @@ namespace APIAPP.Controllers
     [ApiController]
     public class ProSController : ControllerBase
     {
+        private readonly EmailService _emailService;
         private readonly AuthService _authService;
         private readonly ILogger<PatientController> _logger;
         private readonly AppDbContext _context;
@@ -28,11 +29,13 @@ namespace APIAPP.Controllers
         public ProSController(
             AuthService authService,
             ILogger<PatientController> logger,
-            AppDbContext context)
+            AppDbContext context,
+            EmailService emailService)
         {
             _authService = authService;
             _logger = logger;
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpPost("signupWithFileProS")]
@@ -47,6 +50,31 @@ namespace APIAPP.Controllers
             if (resultP == null)
                 return Conflict("Cet utilisateur existe déjà.");
 
+        var id= resultP.ProSUID.ToString();
+        if(resultP.email==null){
+            return BadRequest("Email manquant.");
+        }
+        var role = "20";
+            // Envoi d'un email de confirmation
+          string baseUrl = "http://192.168.1.102:5001";  
+          string subject = "Please Confirm Your New Email Address";
+          string body = $@"
+    <html>
+      <body>
+        <p>Bonjour,</p>
+        <p>We received a request to update the email address associated with your account on E-Mergency.</p>
+        <p>To confirm that this new email belongs to you and complete the update, please click the link below:</p>
+        <br>
+        <a href={baseUrl}/api/changemail/validate?id={id}&role={role}>Confirm New Mail</a>
+        <br><br>
+        <p>Thanks for being part of E-Mergency!</p>
+        <p>Best regards,</p>
+        <p>The E-Mergency Team</p>
+      </body>
+    </html>";
+    var isSent= await _emailService.SendEmailAsyncValidation(resultP.email, subject, body);
+
+    if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email de confirmation.");
             // Persister la notification Gmail-like
             var admin = _context.Admins.FirstOrDefault();
             if (admin != null)

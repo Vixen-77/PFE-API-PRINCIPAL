@@ -116,6 +116,38 @@ public class PasswordResetController : ControllerBase
         return BadRequest("Une erreur s'est produite lors de la soumission du code.");
     }
 
+    [HttpPost("nvmdpALT")]
+    [EnableCors("AllowReactApp")]
+     public async Task<IActionResult> NewpwdALT([FromForm] string Email, string Role, string NewPassword)
+    {
+
+                if (Role== "10")
+                {
+                    var patient = await _context.Patientss.FirstOrDefaultAsync(p => p.Email.ToLower() == Email.ToLower());
+                    if (patient != null)
+                    {   
+                        patient.Salt = _authService.GenerateSalt();
+                        patient.PasswordHash = _authService.HashPassword(NewPassword, patient.Salt);
+                        await _context.SaveChangesAsync();
+                        return Ok("Mot de passe modifié avec succès.");
+                    }
+                }
+                else if (Role == "20")
+                {
+                    var proS = await _context.ProSs.FirstOrDefaultAsync(p => p.Email.ToLower() == Email.ToLower());
+                    if (proS != null)
+                    {
+                       
+                        proS.Salt = _authService.GenerateSalt();
+                        proS.PasswordHash = _authService.HashPassword(NewPassword, proS.Salt);
+                        await _context.SaveChangesAsync();
+                        return Ok("Mot de passe modifié avec succès.");
+                    }
+                }
+
+        return BadRequest("Une erreur s'est produite lors de la soumission du nouveau mot de passe.");
+    }
+
     
 }
 

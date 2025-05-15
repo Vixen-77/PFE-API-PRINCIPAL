@@ -79,7 +79,8 @@ namespace APIAPP.Services
         else{ 
             pdptest="";
             }
-
+            patient.IsActive=true;
+            await _context.SaveChangesAsync();
             return new SignInResultt
            {
             Token = token,
@@ -125,7 +126,8 @@ namespace APIAPP.Services
         else{ 
             pdptest="";
             }
-
+            proS.IsActive=true;
+            await _context.SaveChangesAsync();
             return new SignInResultt
            {
             Token = token,
@@ -294,6 +296,7 @@ namespace APIAPP.Services
                 Gender =request.Gender,  //0 si femme et 1 si homme
                 Weight = request.Weight, 
                 Height = request.Height,
+                ConfMail = false,
             };
 
             _context.Patientss.Add(newPatient);
@@ -301,7 +304,8 @@ namespace APIAPP.Services
             return new SignUpResult
             {
                 PatientUID = newPatient.UID, // Renvoie l'UID du patient inscrit
-                filename = fileName // Renvoie le nom du fichier sauvegardé
+                filename = fileName, // Renvoie le nom du fichier sauvegardé
+                email = newPatient.Email
             };
         }
 
@@ -376,6 +380,7 @@ namespace APIAPP.Services
               LastLogin= DateTime.UtcNow,
               Certif = relativePathCertif,
               identite= relativePath, 
+              ConfMail = false,
               IsValidated = true,//FIXME: a remttre a false apres que la creation de la page admin         
             };
 
@@ -385,7 +390,8 @@ namespace APIAPP.Services
             {
                 ProSUID = newPro.UID, // Renvoie l'UID du ProS inscrit
                 filename = fileName, // Renvoie le nom du fichier sauvegardé
-                filename2 = fileNameCertif // Renvoie le nom du fichier de certificat sauvegardé
+                filename2 = fileNameCertif, // Renvoie le nom du fichier de certificat sauvegardé
+                email = newPro.Email
             };
 
         }

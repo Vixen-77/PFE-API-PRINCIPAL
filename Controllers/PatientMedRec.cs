@@ -65,8 +65,7 @@ public class Controlleurtest2 : ControllerBase
         </p>
         <p>Merci de votre vigilance.</p>
       </body>
-    </html>
-";
+    </html>";
 
             var isSent = await _emailService.SendEmailAsync(request.MailMedecin, subject, body, thepathishere.path.ToString());
             if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email.");

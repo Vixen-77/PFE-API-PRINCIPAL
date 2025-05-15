@@ -112,6 +112,60 @@ public class GlobalService
 
         return false;
     }
+
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     /// ///////////////////////////////////////////////////////////FIXME:pour les Numero de etelphone //FIXME:////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ///  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static readonly ConcurrentDictionary<string, (string Code, DateTime Expiry)> codes1 = new();
+
+   public string GenerateCodePhoneNumber(string phoneNumber)
+    {
+    // Supprimer les anciens codes expirés du dictionnaire des numéros
+    CleanExpiredPhoneCodes();
+
+    var random = new Random();
+    string code = random.Next(100000, 999999).ToString();
+    var expiration = DateTime.UtcNow.AddMinutes(30);
+
+    // On stocke le code avec sa date d'expiration
+    codes1[phoneNumber] = (code, expiration);
+
+    return code;
+  }
+
+  private void CleanExpiredPhoneCodes()
+  {
+    var now = DateTime.UtcNow;
+
+    foreach (var entry in codes1)
+    {
+        if (entry.Value.Expiry < now)
+        {
+            codes1.TryRemove(entry.Key, out _);
+        }
+    }
+  }
+
+public bool ValidateCodePhoneNumber(string phoneNumber, string code)
+{
+    if (codes1.TryGetValue(phoneNumber, out var stored))
+    {
+        if (stored.Code == code && DateTime.UtcNow <= stored.Expiry)
+        {
+            codes1.TryRemove(phoneNumber, out _); // Supprimer après usage
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+
 }
 
 
@@ -157,3 +211,5 @@ connection.on("PasswordUpdated", () => {
   navigate("/login");
 });
 */
+
+
