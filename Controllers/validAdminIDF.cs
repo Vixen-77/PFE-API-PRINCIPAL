@@ -42,7 +42,7 @@ public IActionResult GetPatientValidate([FromBody] ValidationRequest request)
         return NotFound("Patient introuvable.");
 
     // Mise à jour
-    patient.IsValidated = request.validation;
+    //FIXME:AAAAA patient.IsValidated = request.validation;
     _context.SaveChanges();
 
     var good =  _emailService.SendEmailAsyncValidation(patient.Email, "Validation de votre compte", "Votre compte a été validé avec succès vous pouvez acceder a notre platforme .");

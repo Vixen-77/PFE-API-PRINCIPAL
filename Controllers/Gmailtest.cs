@@ -14,7 +14,7 @@ public class Controlleurtest : ControllerBase
         var smtpClient = new SmtpClient("smtp.gmail.com")
         {
             Port = 587,
-            Credentials = new NetworkCredential("licpfe2025@gmail.com", "biqppsbqyhjhsmvw"), // Remplace ici
+            Credentials = new NetworkCredential("", ""), // Remplace ici
             EnableSsl = true
         };
 
@@ -31,13 +31,13 @@ public class Controlleurtest : ControllerBase
 
         var mailMessage = new MailMessage
         {
-            From = new MailAddress("licpfe2025@gmail.com"),
+            From = new MailAddress(""),
             Subject = "FOR MARIA",
             Body = emailBody,
             IsBodyHtml = false
         };
            var path ="C:\\Users\\HP\\Pictures\\Saved Pictures\\kiruagun.jpg";
-           mailMessage.To.Add("belabbasmelinda444@gmail.com"); //mettre le mail de tu sait qui lol
+           mailMessage.To.Add(""); //mettre le mail de tu sait qui lol
             var attachment = new Attachment(path);
             mailMessage.Attachments.Add(attachment);
      

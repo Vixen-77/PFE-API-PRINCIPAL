@@ -12,6 +12,7 @@ using LibrarySSMS.Models;
 using APIAPP.Services;
 using LibrarySSMS;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.OpenApi.Extensions;
 
 namespace APIAPP.Controllers
 {
@@ -47,15 +48,17 @@ namespace APIAPP.Controllers
             SignUpResult? result = await _authService.SignUpPatient(typedRequest);
             if (result == null)
                 return Conflict("Cet utilisateur existe déjà.");
-        var id= result.PatientUID.ToString();
-        if(result.email==null){
-            return BadRequest("Email manquant.");
-        }
-        var role = "10";
+            var id = result.PatientUID.ToString();
+            if(id != null)
+            {
+            if (result.email == null) {
+                return BadRequest("Email manquant.");
+            }
+            var role = "10";
             // Envoi d'un email de confirmation
-          string baseUrl = "http://192.168.1.102:5001";  
-          string subject = "Please Confirm Your New Email Address";
-          string body = $@"
+            string baseUrl = "http://192.168.1.102:5001";
+            string subject = "Please Confirm Your New Email Address";
+            string body = $@"
     <html>
       <body>
         <p>Bonjour,</p>
@@ -69,27 +72,68 @@ namespace APIAPP.Controllers
         <p>The E-Mergency Team</p>
       </body>
     </html>";
-    var isSent= await _emailService.SendEmailAsyncValidation(result.email, subject, body);
-    if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email de confirmation.");
+    
+            var isSent = await _emailService.SendEmailAsyncValidation(result.email, subject, body);
             
-            // Persister la notification Gmail-like
-            var admin = _context.Admins.FirstOrDefault();
-            if (admin!= null)  // FIXME:puis rendre fals car les compte admin ne sont pas encore cree 
-            {
-                var notif = new NotificationAdmin
+            //choix entre admin:0 et super admin:1
+            Random random = new Random();
+            int choix= random.Next(0, 2); // 0 ou 1
 
-                {   
-                    AdminUID = admin.UID,
-                    userUID = result.PatientUID,
-                    CreatedAt = DateTime.UtcNow,
-                    Message = $"Nouveau patient inscrit : {request.Email}",
+            if(choix==0){
+            //choix d un admin random 
+
+            var admin = _context.Admins
+                        .OrderBy(a => Guid.NewGuid())
+                        .FirstOrDefault();
+
+            if (admin != null)  // FIXME:puis rendre fals car les compte admin ne sont pas encore cree 
+            {
+                var CreaCompte = new CreationCompte
+                {
+                    Id = Guid.NewGuid(),
+                    UserUID = Guid.Parse(id),
+                    Role="10",
+                    State=0,
+                    AdminUID=admin.UID,
+                    CreatedAt= DateTime.UtcNow,
+                    
                 };
-                _context.Notificationadmins.Add(notif);
+                _context.CreationCompte.Add(CreaCompte);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation($"Notif créée pour admin {admin.UID}: {notif.Message}");
+                _logger.LogInformation($"Notif créée pour admin {CreaCompte.AdminUID}: patient {CreaCompte.UserUID}");
             }
-            
+            }
+            else{
+                //choix d un super admin random 
+                var superAdmin = _context.SuperAdmins
+                        .OrderBy(a => Guid.NewGuid())
+                        .FirstOrDefault();
+
+                    if (superAdmin != null)  // FIXME:puis rendre fals car les compte admin ne sont pas encore cree 
+                    {
+                        var CreaCompte = new CreationCompte
+                        {
+                            Id = Guid.NewGuid(),
+                            UserUID = Guid.Parse(id),
+                            Role = "10",
+                            State = 0,
+                            AdminUID = superAdmin.UID,
+                            CreatedAt = DateTime.UtcNow,
+
+                        };
+                        _context.CreationCompte.Add(CreaCompte);
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation($"Notif créée pour superadmin {CreaCompte.AdminUID}: patient {CreaCompte.UserUID}");
+                
+                }
+            }
+            if (!isSent) return BadRequest("Erreur lors de l'envoi de l'email de confirmation.");
             return Ok(new { Message = "Inscription réussie.", result.PatientUID });
+            }
+            else
+            {
+                return BadRequest("Erreur lors de l'inscription.");
+            }
         }
 
 
