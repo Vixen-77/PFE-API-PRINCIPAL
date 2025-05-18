@@ -29,7 +29,6 @@ public class FctAdmin : ControllerBase
     private readonly EmailService _emailService;
     private readonly AppDbContext _context;
 
-    // 🔹 Constructeur avec injection de dépendances
     public FctAdmin(AuthService authService, ILogger<AddAdmin> logger, AppDbContext context,GlobalService globalService,EmailService emailService)
     {
         _authService = authService;
@@ -303,6 +302,7 @@ public class FctAdmin : ControllerBase
     {
         var ListActiveAlerts = await _context.Alerts
                                 .Where(a => a.State == 0 || a.State == 1) //pas traite ou en cours de traitement
+                                .Select(a => a.PatientUID)
                                 .ToListAsync();
         return Ok(ListActiveAlerts);
     }
@@ -313,6 +313,7 @@ public class FctAdmin : ControllerBase
     {
         var ListFinishedAlerts = await _context.Alerts
                                 .Where(a => a.State == 2) //finis
+                                .Select(a => a.PatientUID)
                                 .ToListAsync();
 
         return Ok(ListFinishedAlerts);
@@ -328,7 +329,7 @@ public class FctAdmin : ControllerBase
         {
             return NotFound("Alert not found.");
         }
-        else
+        else 
         {
             //on retrouve le patient pr avoir ses info
             var patient = await _context.Patientss.FirstOrDefaultAsync(p => p.UID == UID);
@@ -352,10 +353,13 @@ public class FctAdmin : ControllerBase
                 postalcode = patient.PostalCode,
                 address = patient.Adresse,
                 birthdate = patient.DateofBirth.ToString(),
-                latitudePatient = patient.latitudePatient.ToString() ?? "",
-                longitudePatient = patient.longitudePatient.ToString() ?? "",
+                latitudePatient = Alerte.latitudePatient.ToString() ?? "",
+                longitudePatient = Alerte.longitudePatient.ToString() ?? "",
                 Location = Alerte.Location,
+                Gender = patient.Gender == true ? "male" : "female",
                 ProSID = proS?.UID.ToString() ?? "",
+                firstnamepro = proS?.Name ?? "",
+                lastnamepro = proS?.LastName ?? "",
                 emailProS = proS?.Email ?? "",
                 phonenumberProS = proS?.PhoneNumber ?? "",
                 latitudeProS = proS?.latitudePro.ToString() ?? "",

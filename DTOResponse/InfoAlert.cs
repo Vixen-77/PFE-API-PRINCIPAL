@@ -17,6 +17,7 @@ namespace APIAPP.DTOResponse
         public required string height { get; set; }
         public required string weight { get; set; }
         public required string phonenumber { get; set; }
+        public required string Gender { get; set; }
         public required string postalcode { get; set; }
         public required string address { get; set; }
         public required string birthdate { get; set; }
@@ -24,6 +25,8 @@ namespace APIAPP.DTOResponse
         public required string longitudePatient { get; set; }
         public string? Location { get; set; }
         public string? ProSID { get; set; }
+        public string? firstnamepro { get; set; }
+        public string? lastnamepro { get; set; }
         public string? phonenumberProS { get; set; }
         public string? emailProS { get; set; }
         public string? latitudeProS { get; set; }
