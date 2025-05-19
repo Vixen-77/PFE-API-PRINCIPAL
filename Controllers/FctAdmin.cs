@@ -133,7 +133,9 @@ public class FctAdmin : ControllerBase
                         p.Adresse,
                         p.PostalCode,
                         p.ConfMail,
-                        p.identite
+                        p.identite,
+                        p.Height,
+                        p.Weight
                     })
                 .FirstOrDefaultAsync();
 

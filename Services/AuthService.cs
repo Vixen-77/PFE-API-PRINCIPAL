@@ -70,7 +70,11 @@ namespace APIAPP.Services
             }
             if (patient.IsValidated == -1)
             {
-                throw new AuthException("Votre création de compte a été rejetée.", 403);
+                throw new AuthException("Votre création de compte a été rejetée.", 405);
+            }
+            if (patient.IsBanned == true)
+            {
+                throw new AuthException("Votre compte a été banni.", 406);
             }
             // 4. Génération du token JWT
             var token = _jwtService.GenerateTokenPatient(patient);
@@ -312,9 +316,10 @@ namespace APIAPP.Services
                 IsBanned = false,
                 
             };
-
             _context.Patientss.Add(newPatient);
             await _context.SaveChangesAsync();
+            
+
             return new SignUpResult
             {
                 PatientUID = newPatient.UID, // Renvoie l'UID du patient inscrit
