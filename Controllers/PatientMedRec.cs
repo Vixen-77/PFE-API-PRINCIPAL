@@ -34,7 +34,7 @@ public class Controlleurtest2 : ControllerBase
     {
         if (request.file == null || request.file.Length == 0)
             return BadRequest("Fichier non fourni ou vide.");
-        // Appel au service pour uploader le fichier et envoyer l'email
+
         pathandID? thepathishere = await _methodePatientService.UploadandEmail(request.file, Guid.Parse(request.ID), request.MailMedecin, request.Title);
 
         if (thepathishere == null)
@@ -196,7 +196,6 @@ public class Controlleurtest2 : ControllerBase
             n.State,
             n.MailMed,
             n.Title,
-            n.Description,
             })
             .ToListAsync();
 
