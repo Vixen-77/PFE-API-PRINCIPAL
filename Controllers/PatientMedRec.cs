@@ -35,7 +35,7 @@ public class Controlleurtest2 : ControllerBase
         if (request.file == null || request.file.Length == 0)
             return BadRequest("Fichier non fourni ou vide.");
         // Appel au service pour uploader le fichier et envoyer l'email
-        pathandID? thepathishere = await _methodePatientService.UploadandEmail(request.file, Guid.Parse(request.ID), request.MailMedecin,request.Description, request.Title);
+        pathandID? thepathishere = await _methodePatientService.UploadandEmail(request.file, Guid.Parse(request.ID), request.MailMedecin, request.Title);
 
         if (thepathishere == null)
             return BadRequest("Erreur lors de l'upload du fichier.");
@@ -50,7 +50,6 @@ public class Controlleurtest2 : ControllerBase
       <body>
         <p>Bonjour,</p>
         <p>Vous avez reçu un nouveau dossier médical concernant un patient.</p>
-        <p><strong>Description:</strong> {request.Description}</p>
         <p>
           <a href='{baseUrl}/api/validationmail/accept?dossierId={dossierId}' 
              style='padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px;'>

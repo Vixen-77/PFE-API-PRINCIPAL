@@ -33,7 +33,7 @@ namespace APIAPP.Services
         }
 
 
-public async Task<pathandID?> UploadandEmail(IFormFile file, Guid patientUid, string mailMed, string description, string title)
+public async Task<pathandID?> UploadandEmail(IFormFile file, Guid patientUid, string mailMed, string title)
 {
     if (file == null || file.Length == 0)
     {
@@ -79,7 +79,6 @@ public async Task<pathandID?> UploadandEmail(IFormFile file, Guid patientUid, st
         PatientUID = patientUid,
         Patient = patient,
         Title = title,
-        Description = description,
     };
 
     // 7. Enregistrer dans la base de données
