@@ -40,11 +40,14 @@ namespace APIAPP.Services
         private readonly AppDbContext _context;
         private readonly JWTService _jwtService;
         private readonly HashSet<string> _revokedTokens = new HashSet<string>();
+        private readonly object? _monip;
 
-        public AuthService(AppDbContext context, JWTService jwtService)
+        public AuthService(AppDbContext context, JWTService jwtService, IConfiguration configuration)
         {
             _context = context;
             _jwtService = jwtService;
+            _monip = configuration["ipadr"] ?? throw new ArgumentException("ip manquant dans la configuration.");
+
         }
 
 
@@ -83,7 +86,7 @@ namespace APIAPP.Services
             var pdptest = patient.ProfilPic;
             if (pdptest != null)
             {
-                pdptest = "http://192.168.1.102:5001/" + patient.ProfilPic?.ToString().Replace("\\", "/");
+                pdptest = $"http://{_monip}:5001/" + patient.ProfilPic?.ToString().Replace("\\", "/");
             }
             else
             {
@@ -136,7 +139,7 @@ namespace APIAPP.Services
             var pdptest = proS.ProfilPic;
             if (pdptest != null)
             {
-                pdptest = "http://192.168.1.102:5001/" + proS.ProfilPic?.ToString().Replace("\\", "/");
+                pdptest = $"http://{_monip}:5001/" + proS.ProfilPic?.ToString().Replace("\\", "/");
             }
             else
             {
@@ -166,7 +169,7 @@ namespace APIAPP.Services
         public async Task<SignInResultAdmin?> SignInAdminH(string email, string password, string key)
         {
 
-            var adminh = _context.AdminHs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
+            var adminh = _context.AdminHs.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.UIDKEY == key);
             if (adminh == null || !VerifyPassword(password, adminh.PasswordHash, adminh.Salt))
             {
                 throw new AuthException("Email ou mot de passe incorrect.", 401);
@@ -192,7 +195,7 @@ namespace APIAPP.Services
         public async Task<SignInResultAdmin?> SignInAdmin(string email, string password, string key)
         {
 
-            var admin = _context.Admins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
+            var admin = _context.Admins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.UIDKEY == key);
 
             if (admin == null || !VerifyPassword(password, admin.PasswordHash, admin.Salt))
             {
@@ -214,10 +217,10 @@ namespace APIAPP.Services
             };
         }
 
-        public async Task<SignInResultAdmin?> SignInSuperAdmin(string email, string password, String key)
+        public async Task<SignInResultAdmin?> SignInSuperAdmin(string email, string password, string key)
         {
 
-            var superadmin = _context.SuperAdmins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.PasswordHash == password && p.UIDKEY == key);
+            var superadmin = _context.SuperAdmins.FirstOrDefault(p => p.Email.ToLower() == email.ToLower() && p.UIDKEY == key);
             if (superadmin == null || !VerifyPassword(password, superadmin.PasswordHash, superadmin.Salt))
             {
                 throw new AuthException("Email ou mot de passe incorrect.", 401);
@@ -301,7 +304,7 @@ namespace APIAPP.Services
                 SubscriptionPlan = false,
                 IsOnline = false,
                 State = UserState.Conducteur, //par defaut mais le user peut le changé ou bien changement par automatisation
-                IsValidated = 1,// FIXME: a remttre a false apres que la creation de la page admin
+                IsValidated = 0,// FIXME: a remttre a false apres que la creation de la page admin
                 IdphoneP = null,
                 IdSmartwatchP = null,
                 IdSmartwatchNewGenP = null,
@@ -401,7 +404,7 @@ namespace APIAPP.Services
                 identite = relativePath,
                 ConfMail = false,
                 IsBanned=false,
-                IsValidated = 1,//FIXME: a remttre a false apres que la creation de la page admin         
+                IsValidated = 0,//FIXME: a remttre a false apres que la creation de la page admin         
             };
 
             _context.ProSs.Add(newPro);

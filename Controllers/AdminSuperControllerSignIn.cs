@@ -30,7 +30,7 @@ public class AdminSuperSignIn : ControllerBase
 
 [HttpPost("signinSuperAdmin")]
 [EnableCors("AllowReactApp")]
-public IActionResult SignIn([FromBody] SignInRequestAdmin request)
+public IActionResult SignIn([FromForm] SignInRequestAdmin request)
 {    
     if (request == null)
     {

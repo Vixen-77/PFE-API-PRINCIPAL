@@ -23,17 +23,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Charger les variables depuis .env
 Env.Load("C:\\Users\\HP\\Documents\\L3\\PFE\\PFE-API-PRINCIPAL\\.env");
-var appUrl = Env.GetString("API_URL"); 
+var apiUrl = Env.GetString("API_URL");
 var reactAppUrl = Env.GetString("REACT_URL");
+var ipconfig = Env.GetString("IP_ADR");
 
 
-if (string.IsNullOrEmpty(appUrl) || string.IsNullOrEmpty(reactAppUrl))
+if (string.IsNullOrEmpty(apiUrl) || string.IsNullOrEmpty(reactAppUrl))
 {
     throw new Exception("Les variables d'environnement APP_URL et REACT_APP_URL doivent être définies dans .env");
 }
 
 // Utiliser les URLs définies dans .env
-builder.WebHost.UseUrls(appUrl);
+builder.WebHost.UseUrls(apiUrl);
 
 // Ajout des services avant builder.Build()
 builder.Services.AddDataProtection()
@@ -91,7 +92,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://192.168.1.102:3000","http://192.168.1.102:8081")
+        policy.WithOrigins($"http://{ipconfig}:3000",$"http://{ipconfig}:8081")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -170,6 +171,12 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "DataProSCertif")),
     RequestPath = "/DataProSCertif"
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "DataProSidf")),
+    RequestPath = "/DataProSidf"
 });
 app.UseStaticFiles(new StaticFileOptions
 {

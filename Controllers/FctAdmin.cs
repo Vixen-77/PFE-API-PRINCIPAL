@@ -28,8 +28,9 @@ public class FctAdmin : ControllerBase
     private readonly GlobalService _globalService;
     private readonly EmailService _emailService;
     private readonly AppDbContext _context;
+    
 
-    public FctAdmin(AuthService authService, ILogger<AddAdmin> logger, AppDbContext context,GlobalService globalService,EmailService emailService)
+    public FctAdmin(AuthService authService, ILogger<AddAdmin> logger, AppDbContext context, GlobalService globalService, EmailService emailService)
     {
         _authService = authService;
         _emailService = emailService;
@@ -331,7 +332,7 @@ public class FctAdmin : ControllerBase
         {
             return NotFound("Alert not found.");
         }
-        else 
+        else
         {
             //on retrouve le patient pr avoir ses info
             var patient = await _context.Patientss.FirstOrDefaultAsync(p => p.UID == UID);
@@ -433,7 +434,7 @@ public class FctAdmin : ControllerBase
 
     [HttpPost("BanUser")]
     [EnableCors("AllowReactApp")]
-    public async Task<IActionResult> BanUser([FromForm] string id, [FromForm] string role)
+    public async Task<IActionResult> BanUser([FromForm] string id, [FromForm] string role,[FromForm] string reason)
     {
         var uid = Guid.Parse(id);
         if (role == "10")
@@ -445,6 +446,18 @@ public class FctAdmin : ControllerBase
             }
             patient.IsBanned = true;
             await _context.SaveChangesAsync();
+            string head = "Account Banned";
+            string body = $@"
+            <h3>Your account on E-Mergency has been banned for the following reasons:</h3>
+            <br>
+            <p>{reason}<p>
+            <br>
+            ";
+            var good = await _emailService.SendEmailAsyncValidation(patient.Email, head, body);
+            if (!good)
+            {
+                return BadRequest("Error while sending mail");
+            }
             return Ok("Patient banned with succes");
         }
         else if (role == "20")
@@ -456,6 +469,18 @@ public class FctAdmin : ControllerBase
             }
             proS.IsBanned = true;
             await _context.SaveChangesAsync();
+            string head = "Account Banned";
+            string body = $@"
+            <h3>Your account on E-Mergency has been banned for the following reasons:</h3>
+            <br>
+            <p>{reason}<p>
+            <br>
+            ";
+            var good = await _emailService.SendEmailAsyncValidation(proS.Email, head, body);
+            if (!good)
+            {
+                return BadRequest("Error while sending mail");
+            }
             return Ok("Healthcare Pro banned with succes");
         }
         else
@@ -466,7 +491,7 @@ public class FctAdmin : ControllerBase
 
     [HttpPost("SuspendUser")]
     [EnableCors("AllowReactApp")]
-    public async Task<IActionResult> Suspend([FromForm] string id, [FromForm] string role)
+    public async Task<IActionResult> Suspend([FromForm] string id, [FromForm] string role, [FromForm] string reason)
     {
         var uid = Guid.Parse(id);
         if (role == "10")
@@ -478,6 +503,21 @@ public class FctAdmin : ControllerBase
             }
             patient.AccountStatus = true;
             await _context.SaveChangesAsync();
+            //env d un mail pour expliquer les raisons
+            string head = "Account Suspension";
+            string body = $@"
+            <h3>Your Account on E-Mergency has been suspended for the following reasons:</h3>
+            <br>
+            <p>{reason}<p>
+            <br>
+            <p>A notification will be sent to you when you can use your account again.</p>
+            <br>
+            ";
+            var good = await _emailService.SendEmailAsyncValidation(patient.Email, head, body);
+            if (!good)
+            {
+                return BadRequest("Error while sending mail");
+            }
             return Ok("Patient suspended with succes");
         }
         else if (role == "20")
@@ -489,6 +529,20 @@ public class FctAdmin : ControllerBase
             }
             proS.AccountStatus = true;
             await _context.SaveChangesAsync();
+            string head = "Account Suspension";
+            string body = $@"
+            <h3>Your Account on E-Mergency has been suspended for the following reasons:</h3>
+            <br>
+            <p>{reason}<p>
+            <br>
+            <p>A notification will be sent to you when you can use your account again.</p>
+            <br>
+            ";
+            var good = await _emailService.SendEmailAsyncValidation(proS.Email, head, body);
+            if (!good)
+            {
+                return BadRequest("Error while sending mail");
+            }
             return Ok("Healthcare Pro suspended with succes");
         }
         else
@@ -511,6 +565,16 @@ public class FctAdmin : ControllerBase
             }
             patient.AccountStatus = false;
             await _context.SaveChangesAsync();
+            string head = "Suspention Lifted";
+            string body = $@"
+            <h3>Your suspension on E-Mergency has been lifted. You can use your account again.</h3>
+            <br>
+            ";
+            var good = await _emailService.SendEmailAsyncValidation(patient.Email, head, body);
+            if (!good)
+            {
+                return BadRequest("Error while sending mail");
+            }
             return Ok("Patient in-suspended with succes");
         }
         else if (role == "20")
@@ -522,6 +586,16 @@ public class FctAdmin : ControllerBase
             }
             proS.AccountStatus = false;
             await _context.SaveChangesAsync();
+            string head = "Suspention Lifted";
+            string body = $@"
+            <h3>Your suspension on E-Mergency has been lifted. You can use your account again.</h3>
+            <br>
+            ";
+            var good = await _emailService.SendEmailAsyncValidation(proS.Email, head, body);
+            if (!good)
+            {
+                return BadRequest("Error while sending mail");
+            }
             return Ok("Healthcare Pro in-suspended with succes");
         }
         else
@@ -545,8 +619,8 @@ public class FctAdmin : ControllerBase
 
     [HttpPost("HelpFormResponse")]
     [EnableCors("AllowReactApp")]
-    public async Task<IActionResult> HelpResp([FromForm] string id,[FromForm]string response)
-    {   
+    public async Task<IActionResult> HelpResp([FromForm] string id, [FromForm] string response)
+    {
         string? mail = null;
         var idF = Guid.Parse(id);
         var help = await _context.HelpForms.FirstOrDefaultAsync(h => h.ID == idF);
@@ -566,7 +640,7 @@ public class FctAdmin : ControllerBase
                 }
                 else
                 {
-                     mail = patient.Email;
+                    mail = patient.Email;
                 }
             }
             else if (help.Role == "20")
@@ -579,7 +653,7 @@ public class FctAdmin : ControllerBase
                 }
                 else
                 {
-                     mail = proS.Email;
+                    mail = proS.Email;
                 }
             }
             else
@@ -587,7 +661,7 @@ public class FctAdmin : ControllerBase
                 return BadRequest("Bad Request");
             }
             //on env le mail
-            string head ="Response to Help Form";
+            string head = "Response to Help Form";
             string body = $@"
             <h3>You asked:</h3><br><p>{help.Body}</p><br><br>
             <h3>Our response:<h3>
@@ -604,6 +678,20 @@ public class FctAdmin : ControllerBase
             await _context.SaveChangesAsync();
             return Ok("Response sent succesfully");
         }
+    }
+
+    [HttpPost("Vider")]
+    [EnableCors("AllowReactApp")]
+    public async Task<IActionResult> Vider()
+    {
+        var vider1 = await _context.CreationCompte.ToListAsync();
+        _context.CreationCompte.RemoveRange(vider1);
+
+        var vider2 = await _context.Patientss.ToListAsync();
+        _context.Patientss.RemoveRange(vider2);
+
+        await _context.SaveChangesAsync();
+        return Ok();
     }
 
 }

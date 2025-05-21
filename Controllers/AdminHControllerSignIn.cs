@@ -30,7 +30,7 @@ public class AdminHSignIn : ControllerBase
 
 [HttpPost("signinAdminHopitale")]
 [EnableCors("AllowReactApp")]
-public IActionResult SignIn([FromBody] SignInRequestAdmin request)
+public IActionResult SignIn([FromForm] SignInRequestAdmin request)
 {    
     if (request == null)
     {

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Cors;
 using LibrarySSMS;
 using Microsoft.EntityFrameworkCore;
 using APIAPP.DTO;
+using Microsoft.Extensions.Configuration;
 
 [ApiController]
 [Route("api/editprofile")]
@@ -16,18 +17,21 @@ public class EditProfilee : ControllerBase
     private readonly GlobalService _globalService;
     private readonly EmailService _emailService;
     private readonly AppDbContext _context;
+    private readonly object? _monip;
     private readonly ILogger<EditProfile> _logger;
 
-    public EditProfilee(AuthService authService, ILogger<EditProfile> logger, GlobalService globalService, EmailService emailService, AppDbContext context)
+    public EditProfilee(AuthService authService, ILogger<EditProfile> logger, GlobalService globalService, EmailService emailService, AppDbContext context,IConfiguration configuration)
     {
-       
+
         _authService = authService;
         _logger = logger;
         _globalService = globalService;
         _emailService = emailService;
         _context = context;
-    }
+        _monip = configuration["ipadr"] ?? throw new ArgumentException("ip manquant dans la configuration.");
 
+    }
+    
     // modifier le profil de l utilisateur
     [HttpPost("changeinfo")]
     [EnableCors("AllowReactApp")]
@@ -127,8 +131,8 @@ public class EditProfilee : ControllerBase
             if (patient == null) return NotFound("Patient not found");
             patient.ProfilPic= relativePath;
             await _context.SaveChangesAsync();
-            filePath = "http://192.168.1.102:5001/" + relativePath.Replace("\\","/");
-            
+            filePath = $"http://{_monip}:5001/" + relativePath.Replace("\\","/");
+            //TODO:
             return Ok(filePath);
             }
 

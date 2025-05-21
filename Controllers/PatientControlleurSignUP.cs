@@ -24,17 +24,20 @@ namespace APIAPP.Controllers
         private readonly AuthService _authService;
         private readonly ILogger<PatientController> _logger;
         private readonly AppDbContext _context;
+        private readonly object? _monip;
 
         public PatientController(
             AuthService authService,
             ILogger<PatientController> logger,
             AppDbContext context,
-            EmailService emailService)
+            EmailService emailService,
+            IConfiguration configuration)
         {
             _authService = authService;
             _logger = logger;
             _context = context;
             _emailService = emailService;
+            _monip = configuration["ipadr"] ?? throw new ArgumentException("ip manquant dans la configuration.");
         }
 
         [HttpPost("signupWithFile")]
@@ -56,7 +59,7 @@ namespace APIAPP.Controllers
             }
             var role = "10";
             // Envoi d'un email de confirmation
-            string baseUrl = "http://192.168.1.102:5001";
+            string baseUrl = $"http://{_monip}:5001";
             string subject = "Please Confirm Your New Email Address";
             string body = $@"
     <html>
@@ -78,7 +81,7 @@ namespace APIAPP.Controllers
             //choix entre admin:0 et super admin:1
             Random random = new Random();
             int choix= random.Next(0, 2); // 0 ou 1
-
+                choix = 0; //FIXME: A ENLEVER APRES AVOIR CREE SUPERADMIN
             if(choix==0){
             //choix d un admin random 
 

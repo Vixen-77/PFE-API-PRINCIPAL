@@ -22,14 +22,17 @@ using Microsoft.EntityFrameworkCore;
         private readonly AppDbContext _context;
         private readonly GlobalService _globalService;
         private readonly EmailService _emailService;
+        private readonly object? _monip;
 
-        public EmailtoSms(ISmsService smsService, AppDbContext context, GlobalService globalService,EmailService emailService)
-        {
-            _smsService = smsService;
-            _context = context;
-            _globalService = globalService;
-            _emailService = emailService;
-        }
+    public EmailtoSms(ISmsService smsService, AppDbContext context, GlobalService globalService, EmailService emailService, IConfiguration configuration)
+    {
+        _smsService = smsService;
+        _context = context;
+        _globalService = globalService;
+        _emailService = emailService;
+        _monip = configuration["ipadr"] ?? throw new ArgumentException("ip manquant dans la configuration.");
+
+    }
     
         [HttpPost("email")]
         [EnableCors("AllowReactApp")]
@@ -146,7 +149,7 @@ using Microsoft.EntityFrameworkCore;
     }
 
     // Envoi d'un email de confirmation
-          string baseUrl = "http://192.168.1.102:5001";  
+          string baseUrl = $"http://{_monip}:5001";  
           string subject = "Please Confirm Your New Email Address";
           string body = $@"
     <html>

@@ -17,15 +17,19 @@ public class Controlleurtest2 : ControllerBase
     private readonly EmailService _emailService;
     private readonly UploaderPatient _methodePatientService;
     private readonly AppDbContext _context;
+    private readonly object? _monip;
 
     public Controlleurtest2(
         EmailService emailService,
         AppDbContext context,
-        UploaderPatient methodePatientService)
+        UploaderPatient methodePatientService,
+        IConfiguration configuration)
     {
         _emailService = emailService;
         _context = context;
         _methodePatientService = methodePatientService;
+        _monip = configuration["ipadr"] ?? throw new ArgumentException("ip manquant dans la configuration.");
+
     }
 
     [HttpPost("PatientUploder")]
@@ -42,7 +46,7 @@ public class Controlleurtest2 : ControllerBase
         else {
         {  
 
-          string baseUrl = "http://192.168.1.102:5001";
+          string baseUrl = $"http://{_monip}:5001";
           string subject = "Nouveau dossier médical reçu: "+" "+request.Title;
           string dossierId = thepathishere.ID.ToString();
           string body = $@"
@@ -191,7 +195,7 @@ public class Controlleurtest2 : ControllerBase
             {
             n.UIDMedRec,
             n.PatientUID,
-            filePath = "http://192.168.1.102:5001/" + n.FilePath.Replace("\\", "/"),
+            filePath = $"http://{_monip}:5001/" + n.FilePath.Replace("\\", "/"),
             n.CreatedAt,
             n.State,
             n.MailMed,
