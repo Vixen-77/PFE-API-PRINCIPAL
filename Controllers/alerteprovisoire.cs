@@ -44,7 +44,8 @@ public class Alerte : ControllerBase
     {
         var uid = Guid.Parse(request.PatientUID);
         var alerte = new Alert
-        {
+        {   
+            AlertID = Guid.NewGuid(),
             PatientUID = uid,
             Color = request.Color,
             latitudePatient = request.latitudePatient,
