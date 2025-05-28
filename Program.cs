@@ -92,7 +92,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins($"http://{ipconfig}:3000",$"http://{ipconfig}:8081")
+        policy.WithOrigins($"http://{ipconfig}:3001",$"http://{ipconfig}:8081")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
